@@ -17,6 +17,8 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .radar-scan { animation: scan 2s linear infinite; }
         @keyframes scan { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
+        /* 炫彩呼吸边框 */
+        .glowing-border { box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); border: 1px solid rgba(6, 182, 212, 0.5); }
     </style>
 </head>
 <body class="selection:bg-amber-500/30 min-h-screen p-4 md:p-8">
@@ -25,14 +27,14 @@
     
     <div class="relative z-10 max-w-6xl mx-auto pt-4 md:pt-10" id="app-container">
         
-        <!-- ==================== 1. 玩家门户（报名与查询） ==================== -->
-        <div id="view-register" class="max-w-2xl mx-auto space-y-8">
+        <!-- ==================== 1. 玩家门户（报名、查询与公示大屏） ==================== -->
+        <div id="view-register" class="max-w-4xl mx-auto space-y-8">
             <!-- 头部 -->
             <div class="bg-gradient-to-r from-amber-600 via-red-600 to-purple-800 p-8 text-center rounded-2xl shadow-2xl relative overflow-hidden border border-slate-700">
                 <i class="fa-solid fa-swords absolute -left-4 -top-4 text-9xl text-black/10"></i>
                 <i class="fa-solid fa-shield-halved absolute -right-4 -bottom-4 text-9xl text-black/10"></i>
                 <h1 class="text-3xl md:text-4xl font-black text-white tracking-wider relative z-10 drop-shadow-md">烟雨楼 & 星辰璀璨</h1>
-                <p class="text-amber-100 mt-2 font-medium relative z-10">6月联赛双部落智能分配与查询系统</p>
+                <p class="text-amber-100 mt-2 font-medium relative z-10">6月联赛双部落智能分配与公示大屏</p>
             </div>
 
             <!-- 双栏布局：左侧报名，右侧查询 -->
@@ -40,12 +42,12 @@
                 <!-- 报名栏 -->
                 <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl space-y-6">
                     <h2 class="text-xl font-bold text-amber-500 flex items-center gap-2">
-                        <i class="fa-solid fa-user-plus"></i> 联赛成员报名
+                        <i class="fa-solid fa-user-plus"></i> 联赛成员集结登记
                     </h2>
                     <div id="message-box" class="hidden p-4 rounded-lg flex items-center gap-2 text-sm"></div>
                     <form id="register-form" class="space-y-4">
                         <div>
-                            <label class="block text-slate-300 font-semibold mb-2 text-sm">你所属的部落</label>
+                            <label class="block text-slate-300 font-semibold mb-2 text-sm">你所属的部落编制</label>
                             <select id="player-clan-source" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500 text-sm appearance-none">
                                 <option value="hq">烟雨楼 (总部)</option>
                                 <option value="br">星辰璀璨 (分部)</option>
@@ -62,11 +64,13 @@
                                 <option value="18">18 本</option><option value="17">17 本</option><option value="16">16 本</option>
                                 <option value="15">15 本</option><option value="14">14 本</option><option value="13">13 本</option>
                                 <option value="12">12 本</option><option value="11">11 本</option><option value="10">10 本</option>
-                                <option value="9">9 本</option>
+                                <option value="9">9 本</option><option value="8">8 本</option><option value="7">7 本</option>
+                                <option value="6">6 本</option><option value="5">5 本</option><option value="4">4 本</option>
+                                <option value="3">3 本</option><option value="2">2 本</option><option value="1">1 本</option>
                             </select>
                         </div>
                         <button type="submit" id="submit-btn" class="w-full bg-gradient-to-b from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-900 font-bold py-3 rounded-lg shadow-lg transform transition active:scale-95">
-                            立即提交报名
+                            立即提交出战申请
                         </button>
                     </form>
                 </div>
@@ -74,7 +78,7 @@
                 <!-- 查询栏 -->
                 <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl space-y-6">
                     <h2 class="text-xl font-bold text-cyan-400 flex items-center gap-2">
-                        <i class="fa-solid fa-magnifying-glass"></i> 分配结果快速查询
+                        <i class="fa-solid fa-magnifying-glass"></i> 个人战位快速查询
                     </h2>
                     <p class="text-slate-400 text-xs">支持同名查询，输入昵称实时查看你被分到了哪个队伍：</p>
                     <div class="space-y-4">
@@ -92,9 +96,27 @@
                 </div>
             </div>
 
+            <!-- 🔥 全局实战分组公示大屏 🔥 -->
+            <div class="glowing-border bg-slate-900/80 rounded-xl p-6 shadow-2xl space-y-6 mt-8">
+                <div class="text-center space-y-2">
+                    <h2 class="text-2xl md:text-3xl font-black text-cyan-400 tracking-wider flex justify-center items-center gap-3">
+                        <i class="fa-solid fa-display"></i> 全局联赛编队公示大屏
+                    </h2>
+                    <p class="text-slate-400 text-sm">实时同步首领的排兵布阵，请核对你的作战队伍和部落编号！</p>
+                </div>
+                
+                <div id="public-clan-cards-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- 动态生成公共只读的战队卡片 -->
+                    <div class="col-span-full text-center text-slate-500 py-8">
+                        <i class="fa-solid fa-satellite-dish text-3xl opacity-20 mb-2 block animate-pulse"></i>
+                        正在获取实时战场数据...
+                    </div>
+                </div>
+            </div>
+
             <!-- 管理员入口 -->
-            <div class="text-center">
-                <button onclick="switchView('adminLogin')" class="text-slate-500 hover:text-slate-300 text-xs flex items-center justify-center gap-1 mx-auto transition-colors">
+            <div class="text-center pt-4">
+                <button onclick="switchView('adminLogin')" class="text-slate-600 hover:text-slate-400 text-xs flex items-center justify-center gap-1 mx-auto transition-colors">
                     <i class="fa-solid fa-lock"></i> 烟雨楼调度指挥中心入口
                 </button>
             </div>
@@ -127,12 +149,12 @@
             <!-- 头部汇总 -->
             <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-2xl flex flex-wrap justify-between items-center gap-4">
                 <div class="flex items-center gap-4">
-                    <button onclick="switchView('register')" class="text-slate-400 hover:text-white bg-slate-900 p-2.5 rounded-lg border border-slate-700"><i class="fa-solid fa-arrow-left"></i> 返回主页</button>
+                    <button onclick="switchView('register')" class="text-slate-400 hover:text-white bg-slate-900 p-2.5 rounded-lg border border-slate-700"><i class="fa-solid fa-arrow-left"></i> 退出到大屏</button>
                     <div>
                         <h2 class="text-2xl font-black text-amber-500 flex items-center gap-2">
                             <i class="fa-solid fa-sliders"></i> 烟雨楼双部调度指挥台
                         </h2>
-                        <p class="text-slate-400 text-xs mt-1">全域雷达模式已开启：正在捕获所有历史数据库记录...</p>
+                        <p class="text-slate-400 text-xs mt-1">你的所有调动，外面的公示大屏都会实时同步更新。</p>
                     </div>
                 </div>
                 <!-- 统计数 -->
@@ -152,13 +174,13 @@
                 </div>
             </div>
 
-            <!-- 🚨 全域数据库雷达面板 (核心找回丢失数据功能) -->
+            <!-- 🚨 全域数据库雷达面板 -->
             <div class="bg-slate-900/90 border border-cyan-800/50 rounded-xl p-5 shadow-2xl relative overflow-hidden">
                 <div class="absolute right-[-20px] top-[-20px] opacity-10 radar-scan">
                     <i class="fa-solid fa-satellite-dish text-9xl text-cyan-500"></i>
                 </div>
                 <h3 class="text-sm font-bold text-cyan-400 flex items-center gap-2 mb-3 relative z-10">
-                    <i class="fa-solid fa-radar"></i> 全域数据库搜寻雷达 <span class="text-slate-400 text-xs font-normal">(用于找回丢失的数据)</span>
+                    <i class="fa-solid fa-radar"></i> 全域数据库搜寻雷达
                 </h3>
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-3 relative z-10" id="radar-grid">
                     <!-- 雷达数据由 JS 动态填充 -->
@@ -180,6 +202,11 @@
                                 <label class="block text-slate-400 text-xs mb-1">战队/小队名称</label>
                                 <input type="text" id="clan-name" placeholder="例如：主营一队、星辰挂机营" required
                                     class="w-full bg-slate-900 border border-slate-600 rounded-md px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 text-xs mb-1">部落编号 (标签)</label>
+                                <input type="text" id="clan-tag" placeholder="例如：#2Q8CQY" required
+                                    class="w-full bg-slate-900 border border-slate-600 rounded-md px-3 py-2 text-white text-sm font-mono focus:outline-none focus:border-amber-500">
                             </div>
                             <div>
                                 <label class="block text-slate-400 text-xs mb-1">小队联赛段位</label>
@@ -246,10 +273,10 @@
 
             </div>
 
-            <!-- 底部：分流结果看板 -->
+            <!-- 底部：后台分流结果看板 -->
             <div class="space-y-4">
                 <h3 class="text-xl font-bold text-amber-500 flex items-center gap-2">
-                    <i class="fa-solid fa-sitemap"></i> 联赛战队分组看板 (实时更新)
+                    <i class="fa-solid fa-sitemap"></i> 联赛战队分组看板 (管理模式)
                 </h3>
                 <div id="clan-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <!-- 动态生成各个战队卡片 -->
@@ -293,26 +320,22 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // 核心配置
         const ADMIN_SECRET = 'coc2026'; 
         const APP_ID = 'coc-cwl-app'; 
 
-        // 🌟 雷达监听矩阵：囊括所有历史曾用名和文件夹
         const DATA_SOURCES = [
             { key: 'hq_root', path: 'cwl_registrations', label: '烟雨楼' },
             { key: 'hq_nested', path: `artifacts/${APP_ID}/public/data/cwl_registrations`, label: '烟雨楼' },
             { key: 'br_root', path: 'cwl_june_xingchen', label: '星辰璀璨' },
             { key: 'br_nested', path: `artifacts/${APP_ID}/public/data/cwl_june_xingchen`, label: '星辰璀璨' },
-            { key: 'br_old', path: 'cwl_june_clan2', label: '星辰(旧档)' } // 捕获二部分部落时期的历史数据
+            { key: 'br_old', path: 'cwl_june_clan2', label: '星辰(旧档)' } 
         ];
 
-        // 数据存储器
         let radarCounts = { hq_root: 0, hq_nested: 0, br_root: 0, br_nested: 0, br_old: 0 };
-        let allPlayersMap = new Map(); // 使用 Map 通过 doc.id 自动去重
+        let allPlayersMap = new Map(); 
         let clansData = [];
-        let deleteTarget = null; // { refPath: string }
+        let deleteTarget = null; 
 
-        // 自动匿名登录并启动雷达
         auth.signInAnonymously()
             .then(() => {
                 startRadarListeners();
@@ -320,17 +343,13 @@
             })
             .catch(error => {
                 console.error("Firebase Auth Error:", error);
-                alert("数据库连接受阻，请检查网络或 Firebase Rules 配置。");
+                alert("数据库连接受阻，请检查网络。");
             });
 
-        // 开启雷达：监听所有可能的 5 条路径
         function startRadarListeners() {
             DATA_SOURCES.forEach(source => {
                 db.collection(source.path).onSnapshot(snapshot => {
-                    // 更新雷达计数
                     radarCounts[source.key] = snapshot.docs.length;
-                    
-                    // 提取此路径下的所有数据存入全局 Map
                     snapshot.docs.forEach(doc => {
                         allPlayersMap.set(doc.id, {
                             id: doc.id,
@@ -339,43 +358,36 @@
                             ...doc.data()
                         });
                     });
-
-                    // 同步处理：如果该路径下的某些数据被删除了，需要从 Map 中清理
                     const currentDocIds = snapshot.docs.map(d => d.id);
                     for (const [key, player] of allPlayersMap.entries()) {
                         if (player.refPath.startsWith(source.path) && !currentDocIds.includes(key)) {
                             allPlayersMap.delete(key);
                         }
                     }
-
                     updateRadarUI();
                     triggerUIRender();
                 }, err => {
-                    console.log(`[雷达提示] 路径 ${source.path} 暂时无法访问或为空: ${err.message}`);
+                    console.log(`[雷达] ${source.path} error: ${err.message}`);
                 });
             });
         }
 
-        // 监听后台的联赛战队分组
         function startClansListener() {
             db.collection(APP_ID + "_schedule_clans").onSnapshot(snapshot => {
                 clansData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 clansData.sort((a,b) => a.timestamp - b.timestamp);
-                if (!document.getElementById('view-adminDashboard').classList.contains('hidden')) {
-                    renderAdminDashboard();
-                }
+                triggerUIRender();
             }, err => console.error(err));
         }
 
-        // 触发数据重排与界面渲染
         function triggerUIRender() {
             renderPlayerSearch();
+            renderPublicDashboard(); // 实时刷新前台大屏
             if (!document.getElementById('view-adminDashboard').classList.contains('hidden')) {
                 renderAdminDashboard();
             }
         }
 
-        // 获取经过排序的玩家数组
         function getSortedPlayers() {
             const arr = Array.from(allPlayersMap.values());
             return arr.sort((a, b) => {
@@ -385,7 +397,7 @@
         }
 
         // ==========================================
-        // 🎨 UI 界面控制和路由
+        // 🎨 UI 及徽章颜色控制
         // ==========================================
         function switchView(viewName) {
             document.getElementById('view-register').classList.add('hidden');
@@ -397,7 +409,6 @@
             }
         }
 
-        // 段位徽章样式
         function getTierStyle(tier) {
             if (tier.includes('传奇')) return { bg: 'bg-purple-950/50', text: 'text-purple-400', border: 'border-purple-500/40', icon: 'fa-trophy' };
             if (tier.includes('泰坦')) return { bg: 'bg-orange-950/50', text: 'text-orange-400', border: 'border-orange-500/40', icon: 'fa-fire' };
@@ -407,6 +418,31 @@
             if (tier.includes('金杯')) return { bg: 'bg-amber-950/50', text: 'text-amber-400', border: 'border-amber-500/40', icon: 'fa-coins' };
             if (tier.includes('银杯')) return { bg: 'bg-slate-800/60', text: 'text-slate-300', border: 'border-slate-500/40', icon: 'fa-circle-dot' };
             return { bg: 'bg-amber-900/20', text: 'text-amber-600', border: 'border-amber-900/30', icon: 'fa-award' }; 
+        }
+
+        // 1-18本 专属大本营颜色
+        function getThStyle(level) {
+            const colors = {
+                18: 'bg-fuchsia-600/20 text-fuchsia-400 border-fuchsia-500/30',
+                17: 'bg-red-600/20 text-red-400 border-red-500/30',
+                16: 'bg-orange-600/20 text-orange-400 border-orange-500/30',
+                15: 'bg-amber-600/20 text-amber-400 border-amber-500/30',
+                14: 'bg-yellow-600/20 text-yellow-400 border-yellow-500/30',
+                13: 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30',
+                12: 'bg-teal-600/20 text-teal-400 border-teal-500/30',
+                11: 'bg-cyan-600/20 text-cyan-400 border-cyan-500/30',
+                10: 'bg-blue-600/20 text-blue-400 border-blue-500/30',
+                9:  'bg-indigo-600/20 text-indigo-400 border-indigo-500/30',
+                8:  'bg-violet-600/20 text-violet-400 border-violet-500/30',
+                7:  'bg-purple-600/20 text-purple-400 border-purple-500/30',
+                6:  'bg-pink-600/20 text-pink-400 border-pink-500/30',
+                5:  'bg-rose-600/20 text-rose-400 border-rose-500/30',
+                4:  'bg-stone-600/20 text-stone-400 border-stone-500/30',
+                3:  'bg-neutral-600/20 text-neutral-400 border-neutral-500/30',
+                2:  'bg-zinc-600/20 text-zinc-400 border-zinc-500/30',
+                1:  'bg-slate-600/20 text-slate-400 border-slate-500/30',
+            };
+            return colors[level] || 'bg-gray-600/20 text-gray-400 border-gray-500/30';
         }
 
         // ==========================================
@@ -425,16 +461,6 @@
             btn.innerText = '正在向对应部落发出集结申请...';
 
             try {
-                const playersArray = getSortedPlayers();
-                const exist = playersArray.find(p => p.name.toLowerCase() === name.toLowerCase());
-                if (exist) {
-                    showMessage('error', `该昵称已在 [${exist.source}] 的名单中，无需重复报名！`);
-                    btn.disabled = false;
-                    btn.innerText = '立即提交报名';
-                    return;
-                }
-
-                // 物理文件夹路径映射写入 (写在根目录确保 Netlify 环境高兼容性)
                 const collectionName = sourceCode === 'hq' ? 'cwl_registrations' : 'cwl_june_xingchen';
                 await db.collection(collectionName).add({
                     name: name,
@@ -443,14 +469,14 @@
                     assignedClanName: "",
                     timestamp: Date.now()
                 });
-                showMessage('success', `成功存入 [${sourceCode === 'hq' ? '烟雨楼' : '星辰璀璨'}]，请在右侧输入昵称查询结果。`);
+                showMessage('success', `成功登记到 [${sourceCode === 'hq' ? '烟雨楼' : '星辰璀璨'}]，可在下方大屏查看调度。`);
                 document.getElementById('player-name').value = '';
             } catch (error) {
                 console.error(error);
-                showMessage('error', '写入数据库失败，请联系超级管理员排查 Firebase 规则。');
+                showMessage('error', '写入数据库失败，请联系超级管理员。');
             } finally {
                 btn.disabled = false;
-                btn.innerText = '立即提交报名';
+                btn.innerText = '立即提交出战申请';
             }
         });
 
@@ -468,7 +494,7 @@
         }
 
         // ==========================================
-        // 🔍 玩家侧：综合结果实时检索 (⭐ 已修复多同名展示)
+        // 🔍 玩家侧：综合结果实时检索 
         // ==========================================
         document.getElementById('search-name').addEventListener('input', renderPlayerSearch);
 
@@ -482,7 +508,6 @@
             }
 
             const playersArray = getSortedPlayers();
-            // 使用 filter 抓取所有包含该名字的玩家，不再只抓第一个 (find)
             const matches = playersArray.filter(p => p.name.toLowerCase().includes(query));
             
             if (matches.length === 0) {
@@ -495,17 +520,17 @@
                 return;
             }
 
-            // 生成列表形式的结果，展示所有同名的玩家
             let resultHTML = `<div class="w-full space-y-4 max-h-[400px] overflow-y-auto no-scrollbar text-left">`;
             
             if (matches.length > 1) {
-                resultHTML += `<div class="text-xs text-cyan-400 font-bold mb-2"><i class="fa-solid fa-circle-info"></i> 找到 ${matches.length} 个名称匹配的玩家记录，请核对大本营和所属部落：</div>`;
+                resultHTML += `<div class="text-xs text-cyan-400 font-bold mb-2"><i class="fa-solid fa-circle-info"></i> 找到 ${matches.length} 个名称匹配的玩家记录，请仔细核对：</div>`;
             }
 
             matches.forEach(match => {
                 const isAssigned = !!match.assignedClanId;
                 const clan = clansData.find(c => c.id === match.assignedClanId);
                 const tierStyle = clan ? getTierStyle(clan.tier) : null;
+                const thColor = getThStyle(match.thLevel);
 
                 resultHTML += `<div class="bg-slate-800/80 p-4 rounded-lg border border-slate-700 w-full space-y-3">`;
 
@@ -513,7 +538,7 @@
                     resultHTML += `
                         <div class="flex items-center justify-between border-b border-slate-700 pb-2">
                             <span class="text-slate-400 text-xs">玩家:</span>
-                            <span class="text-amber-400 font-black text-sm">${match.name} <span class="bg-amber-500/20 text-amber-400 text-xs px-2 py-0.5 rounded-full ml-1">${match.thLevel}本</span></span>
+                            <span class="text-slate-100 font-black text-sm">${match.name} <span class="${thColor} text-xs px-2 py-0.5 rounded-full ml-1 border">${match.thLevel}本</span></span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-slate-400 text-xs">编制所属：</span>
@@ -523,6 +548,7 @@
                             <i class="fa-solid ${tierStyle.icon} absolute right-3 top-3 text-4xl text-slate-500/10"></i>
                             <p class="text-[10px] text-slate-400">已被首领分配至实战联赛战队：</p>
                             <h4 class="text-md font-bold text-slate-200">${clan.name}</h4>
+                            ${clan.tag ? `<p class="text-[11px] text-cyan-400 font-mono mt-0.5 select-all"><i class="fa-solid fa-hashtag text-[9px]"></i> ${clan.tag} <span class="text-[9px] text-slate-500 ml-1">(长按复制)</span></p>` : ''}
                             <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold ${tierStyle.bg} ${tierStyle.text} border ${tierStyle.border} mt-1">
                                 <i class="fa-solid ${tierStyle.icon}"></i> ${clan.tier}
                             </div>
@@ -531,7 +557,7 @@
                     resultHTML += `
                         <div class="flex items-center justify-between border-b border-slate-700 pb-2">
                             <span class="text-slate-400 text-xs">玩家:</span>
-                            <span class="text-amber-100 font-bold text-sm">${match.name} <span class="bg-amber-500/20 text-amber-400 text-xs px-2 py-0.5 rounded-full ml-1">${match.thLevel}本</span></span>
+                            <span class="text-slate-100 font-bold text-sm">${match.name} <span class="${thColor} text-xs px-2 py-0.5 rounded-full ml-1 border">${match.thLevel}本</span></span>
                         </div>
                         <div class="flex items-center justify-between text-xs pb-1">
                             <span class="text-slate-400">编制所属：</span>
@@ -552,6 +578,83 @@
         }
 
         // ==========================================
+        // 🌟 首页：全局编队公示大屏渲染
+        // ==========================================
+        function renderPublicDashboard() {
+            const publicCardsContainer = document.getElementById('public-clan-cards-grid');
+            const playersArray = getSortedPlayers();
+
+            if (clansData.length === 0) {
+                publicCardsContainer.innerHTML = `
+                    <div class="col-span-full bg-slate-900/40 border border-slate-800 p-8 text-center rounded-xl text-slate-500 text-sm">
+                        <i class="fa-solid fa-campground text-3xl opacity-20 mb-2 block"></i>
+                        首领尚未发布任何战队编制，请耐心等待。
+                    </div>`;
+                return;
+            }
+
+            publicCardsContainer.innerHTML = '';
+            clansData.forEach(clan => {
+                const style = getTierStyle(clan.tier);
+                const assignedPlayers = playersArray.filter(p => p.assignedClanId === clan.id);
+                const clanThStats = assignedPlayers.reduce((acc, c) => { acc[c.thLevel] = (acc[c.thLevel] || 0) + 1; return acc; }, {});
+
+                let clanThSummary = [];
+                [18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1].forEach(l => {
+                    if (clanThStats[l]) {
+                        const matchColor = getThStyle(l).match(/text-[a-z]+-400/);
+                        const textColor = matchColor ? matchColor[0] : 'text-gray-400';
+                        clanThSummary.push(`<span class="${textColor} font-bold">${l}本</span>x${clanThStats[l]}`);
+                    }
+                });
+
+                let playerRows = assignedPlayers.map((p, idx) => {
+                    const srcDot = p.source === '烟雨楼' ? 'text-amber-400' : 'text-cyan-400';
+                    const thColor = getThStyle(p.thLevel);
+                    return `
+                    <div class="flex justify-between items-center bg-slate-900/50 p-2 rounded border border-slate-800 text-xs">
+                        <span class="font-medium text-slate-200 flex items-center gap-1.5 whitespace-nowrap overflow-hidden text-ellipsis">
+                            <i class="fa-solid fa-circle text-[6px] ${srcDot}"></i>
+                            ${idx+1}. ${p.name}
+                        </span>
+                        <span class="${thColor} border px-1 py-0.5 rounded font-extrabold text-[10px] whitespace-nowrap">${p.thLevel}本</span>
+                    </div>`;
+                }).join('');
+
+                if (playerRows === '') {
+                    playerRows = `<div class="text-slate-500 text-center py-4 text-xs italic">该战队目前没有集结任何人员</div>`;
+                }
+
+                publicCardsContainer.innerHTML += `
+                    <div class="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-5 flex flex-col space-y-4 hover:border-slate-500 transition-colors">
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <h4 class="text-lg font-bold text-white">${clan.name}</h4>
+                                ${clan.tag ? `<p class="text-[11px] text-cyan-400 font-mono mt-0.5 select-all"><i class="fa-solid fa-hashtag text-[9px]"></i> ${clan.tag} <span class="text-[9px] text-slate-500 ml-1">(长按复制)</span></p>` : ''}
+                            </div>
+                            <div class="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold ${style.bg} ${style.text} border ${style.border}">
+                                <i class="fa-solid ${style.icon}"></i> ${clan.tier}
+                            </div>
+                        </div>
+                        
+                        <div class="bg-slate-900/80 p-2.5 rounded border border-slate-800 flex justify-between items-center text-xs">
+                            <span class="text-slate-400">目前编队人数:</span>
+                            <span class="font-extrabold text-amber-400 text-sm">${assignedPlayers.length} 人</span>
+                        </div>
+
+                        ${clanThSummary.length > 0 ? `
+                        <div class="flex flex-wrap gap-1.5 text-[10px] bg-slate-900/30 p-2 rounded border border-slate-800/50">
+                            ${clanThSummary.join('<span class="text-slate-600">|</span>')}
+                        </div>` : ''}
+
+                        <div class="space-y-1.5 max-h-[220px] overflow-y-auto no-scrollbar">
+                            ${playerRows}
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // ==========================================
         // 🔒 后台侧：登录安全校验
         // ==========================================
         document.getElementById('admin-login-form').addEventListener('submit', (e) => {
@@ -569,8 +672,6 @@
         // ==========================================
         // 🛠️ 后台侧：首领智能分配与统筹
         // ==========================================
-        
-        // 更新雷达面板 UI
         function updateRadarUI() {
             const grid = document.getElementById('radar-grid');
             grid.innerHTML = DATA_SOURCES.map(source => {
@@ -589,25 +690,26 @@
             }).join('');
         }
         
-        // 创建联赛空闲小组
         document.getElementById('add-clan-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('clan-name').value.trim();
+            const tag = document.getElementById('clan-tag').value.trim();
             const tier = document.getElementById('clan-tier').value;
 
             try {
                 await db.collection(APP_ID + "_schedule_clans").add({
                     name: name,
+                    tag: tag, 
                     tier: tier,
                     timestamp: Date.now()
                 });
                 document.getElementById('clan-name').value = '';
+                document.getElementById('clan-tag').value = '';
             } catch (error) {
                 console.error("Create Clan Error:", error);
             }
         });
 
-        // 核心渲染：调度管理后台
         function renderAdminDashboard() {
             const playersArray = getSortedPlayers();
             const countTotal = playersArray.length;
@@ -618,15 +720,17 @@
             document.getElementById('stat-assigned-players').innerText = countAssigned;
             document.getElementById('stat-unassigned-players').innerText = countUnassigned;
 
-            // 1. 整体大本分布
             const thStats = playersArray.reduce((acc, c) => { acc[c.thLevel] = (acc[c.thLevel] || 0) + 1; return acc; }, {});
             const thStatsContainer = document.getElementById('total-th-stats');
             thStatsContainer.innerHTML = '';
-            [18, 17, 16, 15, 14, 13, 12, 11, 10, 9].forEach(level => {
+            
+            [18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1].forEach(level => {
                 if (thStats[level]) {
+                    const matchColor = getThStyle(level).match(/text-[a-z]+-400/);
+                    const textColor = matchColor ? matchColor[0] : 'text-gray-400';
                     thStatsContainer.innerHTML += `
                         <div class="bg-slate-900 border border-slate-700 px-2.5 py-1 rounded flex items-center gap-1.5">
-                            <span class="text-amber-400 font-bold">${level}本</span>
+                            <span class="${textColor} font-bold">${level}本</span>
                             <span class="text-slate-500">|</span>
                             <span class="text-white">${thStats[level]}人</span>
                         </div>`;
@@ -634,7 +738,6 @@
             });
             if(thStatsContainer.innerHTML === '') thStatsContainer.innerHTML = '<span class="text-slate-500">暂无任何人报名记录。</span>';
 
-            // 2. 渲染玩家名单大表
             const playersTableBody = document.getElementById('admin-players-list');
             if (playersArray.length === 0) {
                 playersTableBody.innerHTML = `<tr><td colSpan="6" class="px-4 py-10 text-center text-slate-500"><i class="fa-solid fa-satellite-dish text-3xl opacity-20 mb-2 block"></i>雷达正在扫描，目前未发现任何报名数据...</td></tr>`;
@@ -649,6 +752,8 @@
                     const sourceBadge = player.source === '烟雨楼' 
                         ? 'bg-amber-600/20 text-amber-300 border border-amber-600/30' 
                         : 'bg-cyan-600/20 text-cyan-300 border border-cyan-600/30';
+                    
+                    const thColor = getThStyle(player.thLevel);
 
                     return `
                         <tr class="hover:bg-slate-700/20 transition-colors border-b border-slate-700/30">
@@ -660,7 +765,7 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3">
-                                <span class="bg-slate-900 border border-slate-700 px-2 py-0.5 rounded text-xs font-extrabold text-amber-400">
+                                <span class="${thColor} px-2 py-0.5 rounded text-xs font-extrabold border">
                                     ${player.thLevel} 本
                                 </span>
                             </td>
@@ -679,7 +784,6 @@
                 }).join('');
             }
 
-            // 3. 渲染底部看板 (卡片视图)
             const clanCardsContainer = document.getElementById('clan-cards-grid');
             clanCardsContainer.innerHTML = '';
 
@@ -689,19 +793,24 @@
                 const clanThStats = assignedPlayers.reduce((acc, c) => { acc[c.thLevel] = (acc[c.thLevel] || 0) + 1; return acc; }, {});
 
                 let clanThSummary = [];
-                [18, 17, 16, 15, 14, 13, 12, 11, 10, 9].forEach(l => {
-                    if (clanThStats[l]) clanThSummary.push(`<span class="text-amber-400 font-bold">${l}本</span>x${clanThStats[l]}`);
+                [18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1].forEach(l => {
+                    if (clanThStats[l]) {
+                        const matchColor = getThStyle(l).match(/text-[a-z]+-400/);
+                        const textColor = matchColor ? matchColor[0] : 'text-gray-400';
+                        clanThSummary.push(`<span class="${textColor} font-bold">${l}本</span>x${clanThStats[l]}`);
+                    }
                 });
 
                 let playerRows = assignedPlayers.map((p, idx) => {
                     const srcDot = p.source === '烟雨楼' ? 'text-amber-400' : 'text-cyan-400';
+                    const thColor = getThStyle(p.thLevel);
                     return `
                     <div class="flex justify-between items-center bg-slate-900/50 p-2 rounded border border-slate-800 text-xs">
                         <span class="font-medium text-slate-200 flex items-center gap-1.5 whitespace-nowrap overflow-hidden text-ellipsis">
                             <i class="fa-solid fa-circle text-[6px] ${srcDot}"></i>
                             ${idx+1}. ${p.name}
                         </span>
-                        <span class="bg-amber-500/10 text-amber-400 px-1 py-0.5 rounded font-extrabold text-[10px] whitespace-nowrap">${p.thLevel}本</span>
+                        <span class="${thColor} border px-1 py-0.5 rounded font-extrabold text-[10px] whitespace-nowrap">${p.thLevel}本</span>
                     </div>`;
                 }).join('');
 
@@ -714,6 +823,7 @@
                         <div class="flex justify-between items-start gap-2">
                             <div>
                                 <h4 class="text-md font-bold text-white">${clan.name}</h4>
+                                ${clan.tag ? `<p class="text-[10px] text-slate-400 font-mono mt-0.5">${clan.tag}</p>` : ''}
                                 <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold ${style.bg} ${style.text} border ${style.border} mt-1">
                                     <i class="fa-solid ${style.icon}"></i> ${clan.tier}
                                 </div>
@@ -748,7 +858,6 @@
             }
         }
 
-        // 无缝跨数据库原地更新
         async function assignPlayer(docPath, clanId) {
             try {
                 let assignedClanName = "";
@@ -765,7 +874,6 @@
             }
         }
 
-        // 智能均匀轮流排兵分配
         async function autoFillUnassigned() {
             const playersArray = getSortedPlayers();
             const unassigned = playersArray.filter(p => !p.assignedClanId);
@@ -809,15 +917,13 @@
             if (!deleteTarget) return;
             try {
                 if (deleteTarget.type === 'player') {
-                    // 原生定位物理路径直接彻底删除
                     await db.doc(deleteTarget.pathOrId).delete();
                 } else {
-                    // 解散部落
                     await db.collection(APP_ID + "_schedule_clans").doc(deleteTarget.pathOrId).delete();
                     const playersArray = getSortedPlayers();
                     const affectedPlayers = playersArray.filter(p => p.assignedClanId === deleteTarget.pathOrId);
                     for (const p of affectedPlayers) {
-                        await assignPlayer(p.refPath, ""); // 智能归零
+                        await assignPlayer(p.refPath, ""); 
                     }
                 }
             } catch (error) {
