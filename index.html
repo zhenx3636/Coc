@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COC 双部落联赛智能调度系统</title>
+    <title>COC 联赛智能调度与大屏系统</title>
     <!-- 引入 Tailwind CSS 进行页面美化 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入 FontAwesome 图标库 -->
@@ -372,10 +372,36 @@
             });
         }
 
+        // ==========================================
+        // 🏆 段位权重排序逻辑
+        // ==========================================
+        function getTierWeight(tier) {
+            const tiers = [
+                "铜杯 III", "铜杯 II", "铜杯 I",
+                "银杯 III", "银杯 II", "银杯 I",
+                "金杯 III", "金杯 II", "金杯 I",
+                "水晶杯 III", "水晶杯 II", "水晶杯 I",
+                "大师杯 III", "大师杯 II", "大师杯 I",
+                "冠军杯 III", "冠军杯 II", "冠军杯 I",
+                "泰坦杯 III", "泰坦杯 II", "泰坦杯 I",
+                "传奇杯联赛"
+            ];
+            const weight = tiers.indexOf(tier);
+            return weight === -1 ? 0 : weight;
+        }
+
         function startClansListener() {
             db.collection(APP_ID + "_schedule_clans").onSnapshot(snapshot => {
                 clansData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                clansData.sort((a,b) => a.timestamp - b.timestamp);
+                // 自动按段位从高到低排序，如果段位相同则按创建时间
+                clansData.sort((a,b) => {
+                    const weightA = getTierWeight(a.tier);
+                    const weightB = getTierWeight(b.tier);
+                    if (weightA !== weightB) {
+                        return weightB - weightA; // 降序，高的在上面
+                    }
+                    return a.timestamp - b.timestamp;
+                });
                 triggerUIRender();
             }, err => console.error(err));
         }
@@ -578,7 +604,7 @@
         }
 
         // ==========================================
-        // 🌟 首页：全局编队公示大屏渲染
+        // 🌟 首页：全局编队公示大屏渲染 (已按段位排序)
         // ==========================================
         function renderPublicDashboard() {
             const publicCardsContainer = document.getElementById('public-clan-cards-grid');
@@ -594,6 +620,7 @@
             }
 
             publicCardsContainer.innerHTML = '';
+            // clansData 已经在 startClansListener 中自动排序过了
             clansData.forEach(clan => {
                 const style = getTierStyle(clan.tier);
                 const assignedPlayers = playersArray.filter(p => p.assignedClanId === clan.id);
@@ -818,8 +845,9 @@
                     playerRows = `<div class="text-slate-500 text-center py-4 text-xs italic">该战队目前没有集结任何人员</div>`;
                 }
 
+                // 卡片上展示部落编号
                 clanCardsContainer.innerHTML += `
-                    <div class="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-5 flex flex-col space-y-4">
+                    <div class="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-5 flex flex-col space-y-4 hover:border-slate-500 transition-colors">
                         <div class="flex justify-between items-start gap-2">
                             <div>
                                 <h4 class="text-md font-bold text-white">${clan.name}</h4>
