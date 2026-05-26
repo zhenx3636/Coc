@@ -232,7 +232,7 @@
                     </form>
                 </div>
 
-                <!-- 🌟 空闲待命大厅 -->
+                <!-- 🌟 全新重构：空闲待命大厅 -->
                 <div class="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-5 flex flex-col h-full">
                     <div class="flex justify-between items-center mb-4">
                         <span class="font-bold text-red-400 flex items-center gap-2">
@@ -240,12 +240,13 @@
                         </span>
                         <!-- 大本营筛选器 -->
                         <div class="flex flex-wrap gap-1 max-w-[60%] justify-end" id="th-filters-container">
-                            <!-- JS 动态生成 -->
+                            <!-- JS 动态生成 18本, 17本 筛选按钮 -->
                         </div>
                     </div>
                     
                     <div class="bg-slate-900/50 rounded-lg border border-slate-800 p-4 flex-grow max-h-[300px] overflow-y-auto no-scrollbar">
                         <div id="idle-players-grid" class="flex flex-wrap gap-2 items-start">
+                            <!-- 待命玩家标签 -->
                             <div class="text-slate-500 text-sm italic w-full text-center py-10">目前没有空闲的成员。</div>
                         </div>
                     </div>
@@ -253,7 +254,7 @@
 
             </div>
 
-            <!-- 🌟 战队排兵布阵看版 -->
+            <!-- 🌟 战队排兵布阵看版 (按需拉人) -->
             <div class="space-y-4 pt-4 border-t border-slate-700/50">
                 <h3 class="text-xl font-bold text-amber-500 flex items-center gap-2">
                     <i class="fa-solid fa-sitemap"></i> 联赛战队沙盘 (直接在此选人入队)
@@ -321,7 +322,7 @@
         const ADMIN_SECRET = 'coc2026'; 
         const APP_ID = 'coc-cwl-app'; 
 
-        // ⭐ 已修复：恢复完整的 5 路扫描雷达频段
+        // 确保雷达五个频段全开，不漏掉任何历史数据
         const DATA_SOURCES = [
             { key: 'hq_root', path: 'cwl_registrations', label: '烟雨楼' },
             { key: 'hq_nested', path: `artifacts/${APP_ID}/public/data/cwl_registrations`, label: '烟雨楼' },
@@ -544,15 +545,28 @@
             setTimeout(() => box.classList.add('hidden'), 5000);
         }
 
+        // ⭐ 核心修复：把搜索的事件监听器加回来了
+        document.getElementById('search-name').addEventListener('input', renderPlayerSearch);
+
         function renderPlayerSearch() {
             const query = document.getElementById('search-name').value.trim().toLowerCase();
             const resultBox = document.getElementById('search-result');
             if(!query) return resultBox.innerHTML = `<span class="text-slate-500 text-sm">请输入你的游戏昵称进行查询</span>`;
 
             const matches = getSortedPlayers().filter(p => p.name.toLowerCase().includes(query));
-            if (matches.length === 0) return resultBox.innerHTML = `<div class="text-slate-500 text-sm">未找到记录。</div>`;
+            if (matches.length === 0) return resultBox.innerHTML = `
+                <div class="space-y-1">
+                    <i class="fa-solid fa-face-frown text-slate-500 text-xl"></i>
+                    <p class="text-slate-300 text-sm font-semibold">未找到相关玩家的报名记录</p>
+                    <p class="text-xs text-slate-500">可能已被清空或输入有误。</p>
+                </div>`;
 
-            resultBox.innerHTML = `<div class="w-full space-y-3 text-left">` + matches.map(match => {
+            let resultHTML = `<div class="w-full space-y-3 text-left">`;
+            if (matches.length > 1) {
+                resultHTML += `<div class="text-xs text-cyan-400 font-bold mb-2"><i class="fa-solid fa-circle-info"></i> 找到 ${matches.length} 个名称匹配的玩家记录，请仔细核对：</div>`;
+            }
+
+            resultHTML += matches.map(match => {
                 const clan = clansData.find(c => c.id === match.assignedClanId);
                 const thColor = getThStyle(match.thLevel);
                 let content = `<div class="bg-slate-800/80 p-3 rounded-lg border border-slate-700 w-full space-y-2">
@@ -562,12 +576,23 @@
                     </div>`;
                 if (clan) {
                     const style = getTierStyle(clan.tier);
-                    content += `<div class="bg-slate-900 p-2 rounded border border-slate-700 text-xs">已被编入：<strong class="text-white">${clan.name}</strong> <span class="${style.text}">(${clan.tier})</span></div>`;
+                    content += `
+                        <div class="bg-gradient-to-r from-slate-900 to-slate-900/80 p-2 rounded border border-slate-700 text-left relative overflow-hidden">
+                            <i class="fa-solid ${style.icon} absolute right-3 top-3 text-4xl text-slate-500/10"></i>
+                            <p class="text-[10px] text-slate-400">已被首领分配至实战联赛战队：</p>
+                            <h4 class="text-md font-bold text-slate-200 mt-1">${clan.name}</h4>
+                            ${clan.tag ? `<p class="text-[11px] text-cyan-400 font-mono mt-0.5 select-all"><i class="fa-solid fa-hashtag text-[9px]"></i> ${clan.tag}</p>` : ''}
+                            <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold ${style.bg} ${style.text} border ${style.border} mt-2">
+                                <i class="fa-solid ${style.icon}"></i> ${clan.tier}
+                            </div>
+                        </div>`;
                 } else {
-                    content += `<div class="text-xs text-amber-400"><i class="fa-solid fa-hourglass-half"></i> 闲置待命中，等待首领点将...</div>`;
+                    content += `<div class="text-xs text-amber-400 p-2 bg-amber-500/10 rounded"><i class="fa-solid fa-hourglass-half"></i> 闲置待命中，等待首领点将...</div>`;
                 }
                 return content + `</div>`;
-            }).join('') + `</div>`;
+            }).join('');
+            
+            resultBox.innerHTML = resultHTML + `</div>`;
         }
 
         function renderPublicDashboard() {
@@ -583,27 +608,32 @@
                 const capColor = assigned.length > cap ? 'text-red-400 animate-pulse' : (isFull ? 'text-emerald-400' : 'text-amber-400');
                 
                 let playerRows = assigned.map((p, idx) => `
-                    <div class="flex justify-between items-center bg-slate-900/80 rounded border border-slate-700/50 text-xs px-2 py-1 w-full">
-                        <span class="truncate text-slate-200">${idx+1}. ${p.name}</span>
+                    <div class="flex justify-between items-center bg-slate-900/80 rounded border border-slate-700/50 text-xs px-2 py-1.5 w-full hover:border-slate-500 transition-colors">
+                        <div class="font-medium text-slate-200 flex items-center gap-1.5 truncate pr-1">
+                            <i class="fa-solid fa-circle text-[6px] ${p.source === '烟雨楼' ? 'text-amber-400' : 'text-cyan-400'} shrink-0"></i>
+                            <span class="truncate">${idx+1}.${p.name}</span>
+                        </div>
                         <span class="${getThStyle(p.thLevel)} border px-1 py-0.5 rounded font-extrabold text-[10px] shrink-0">${p.thLevel}本</span>
                     </div>`).join('');
                 
-                if(!playerRows) playerRows = `<div class="text-slate-500 text-xs text-center w-full">暂无成员</div>`;
+                if(!playerRows) playerRows = `<div class="text-slate-500 text-xs text-center w-full col-span-full py-2">席位空缺</div>`;
 
                 return `
-                <div class="bg-slate-800 border border-slate-700 rounded-xl shadow-xl p-4 flex flex-col space-y-3">
+                <div class="bg-slate-800 border border-slate-700 rounded-xl shadow-xl p-4 flex flex-col space-y-3 h-fit">
                     <div class="flex justify-between items-start">
                         <div>
                             <h4 class="text-md font-bold text-white">${clan.name}</h4>
                             ${clan.tag ? `<p class="text-[10px] text-cyan-400 font-mono mt-0.5 select-all">${clan.tag}</p>` : ''}
                         </div>
-                        <div class="px-2 py-0.5 rounded text-[10px] font-bold ${style.bg} ${style.text} border ${style.border}">${clan.tier}</div>
+                        <div class="px-2 py-1 rounded text-[10px] font-bold ${style.bg} ${style.text} border ${style.border} flex items-center gap-1">
+                            <i class="fa-solid ${style.icon}"></i> ${clan.tier}
+                        </div>
                     </div>
-                    <div class="bg-slate-900 p-2 rounded flex justify-between items-center text-xs">
+                    <div class="bg-slate-900 p-2 rounded flex justify-between items-center text-xs border border-slate-700">
                         <span class="text-slate-400">参战规模:</span>
                         <span class="font-extrabold ${capColor}">${assigned.length} / ${cap} 人</span>
                     </div>
-                    <div class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-1.5 w-full">${playerRows}</div>
+                    <div class="grid grid-cols-[repeat(auto-fill,minmax(135px,1fr))] gap-2 w-full">${playerRows}</div>
                 </div>`;
             }).join('');
         }
@@ -671,14 +701,20 @@
                 const isFull = assigned.length >= cap;
                 const capColor = assigned.length > cap ? 'text-red-400 font-bold animate-pulse' : (isFull ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold');
 
-                // 战队内已有人员 (带踢出功能)
+                // 战队内已有人员 (带踢出功能，网格对齐)
                 let playerRows = assigned.map((p, idx) => `
-                    <div class="flex justify-between items-center bg-slate-900/80 rounded border border-slate-700/50 text-xs pl-2 pr-1 py-1 w-full hover:border-red-500/50 transition-colors group">
-                        <span class="truncate text-slate-200 flex-grow">${idx+1}. ${p.name}</span>
-                        <span class="${getThStyle(p.thLevel)} border px-1 py-0.5 rounded font-extrabold text-[10px] shrink-0 mr-2">${p.thLevel}本</span>
-                        <button onclick="assignPlayer('${p.refPath}', '')" class="text-slate-600 hover:text-red-400 px-1 shrink-0 group-hover:text-red-500" title="踢回闲置大厅"><i class="fa-solid fa-minus-circle"></i></button>
+                    <div class="flex justify-between items-center bg-slate-900/80 rounded border border-slate-700/50 text-xs px-2 py-1.5 w-full hover:border-red-500/50 transition-colors group">
+                        <div class="font-medium text-slate-200 flex items-center gap-1.5 truncate pr-1">
+                            <i class="fa-solid fa-circle text-[6px] ${p.source === '烟雨楼' ? 'text-amber-400' : 'text-cyan-400'} shrink-0"></i>
+                            <span class="truncate">${idx+1}.${p.name}</span>
+                        </div>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <span class="${getThStyle(p.thLevel)} border px-1 py-0.5 rounded font-extrabold text-[10px]">${p.thLevel}本</span>
+                            <button onclick="assignPlayer('${p.refPath}', '')" class="text-slate-600 hover:text-red-400 px-1" title="踢回闲置大厅"><i class="fa-solid fa-minus-circle"></i></button>
+                        </div>
                     </div>`).join('');
-                if(!playerRows) playerRows = `<div class="text-slate-500 text-xs w-full text-center italic py-2">席位空缺，请在下方招募</div>`;
+                
+                if(!playerRows) playerRows = `<div class="text-slate-500 text-xs w-full text-center italic py-2 col-span-full">席位空缺，请在下方招募</div>`;
 
                 // 动态生成拉人按钮 (只显示有闲置资源的本数)
                 let recruitButtons = '';
@@ -688,10 +724,10 @@
                         recruitButtons += `<button onclick="openPicker('${clan.id}', '${clan.name}', ${th})" class="${styleStr} border text-[10px] font-bold px-2 py-1 rounded shadow-sm hover:brightness-125 transition transform active:scale-95 flex items-center gap-1"><i class="fa-solid fa-plus"></i> ${th}本 (${thCounts[th]})</button>`;
                     }
                 });
-                if(!recruitButtons) recruitButtons = `<span class="text-[10px] text-slate-600">待命大厅暂无高本兵力可调遣</span>`;
+                if(!recruitButtons) recruitButtons = `<span class="text-[10px] text-slate-600 w-full text-center">待命大厅暂无高本兵力可调遣</span>`;
 
                 return `
-                <div class="bg-slate-800 border border-slate-700 rounded-xl shadow-xl p-4 flex flex-col space-y-3 relative">
+                <div class="bg-slate-800 border border-slate-700 rounded-xl shadow-xl p-4 flex flex-col space-y-3 relative h-fit">
                     <div class="flex justify-between items-start gap-2">
                         <div class="flex-grow">
                             <h4 class="text-md font-bold text-white flex items-center gap-1">${clan.name}</h4>
@@ -707,7 +743,7 @@
                         <span class="${capColor}">${assigned.length} / ${cap} 人</span>
                     </div>
 
-                    <div class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-1.5 w-full">${playerRows}</div>
+                    <div class="grid grid-cols-[repeat(auto-fill,minmax(135px,1fr))] gap-2 w-full">${playerRows}</div>
                     
                     <!-- 招募兵站 -->
                     <div class="pt-3 border-t border-slate-700/50">
@@ -757,7 +793,6 @@
 
         async function executeAssign(docPath, clanId) {
             await assignPlayer(docPath, clanId);
-            // 这里不需要关弹窗，允许连续快速点将
         }
 
         async function assignPlayer(docPath, clanId) {
@@ -778,7 +813,7 @@
             deleteTarget = { type, pathOrId };
             const textElement = document.getElementById('delete-modal-text');
             const inputElement = document.getElementById('reset-confirm-input');
-            inputElement.classList.add('hidden'); // 隐藏核弹输入框
+            inputElement.classList.add('hidden'); 
 
             if (type === 'player') textElement.innerText = `确定要彻底抹除闲置玩家 [${name}] 的记录吗？`;
             else textElement.innerText = `解散战队 [${name}] 后，其所有成员将自动转入空闲（未分配）状态。`;
