@@ -5,10 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>COC 联赛智能调度与大屏系统</title>
-    <!-- 引入 Tailwind CSS 进行页面美化 -->
+    <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入 FontAwesome 图标库 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
     <style>
         body { background-color: #020617; color: white; font-family: sans-serif; }
         .hidden { display: none !important; }
@@ -28,17 +29,17 @@
     <div class="relative z-10 max-w-6xl mx-auto pt-4 md:pt-10" id="app-container">
         
         <!-- ==================== 1. 玩家门户（报名、查询与公示大屏） ==================== -->
-        <div id="view-register" class="max-w-4xl mx-auto space-y-8">
+        <div id="view-register" class="max-w-5xl mx-auto space-y-8">
             <!-- 头部 -->
             <div class="bg-gradient-to-r from-amber-600 via-red-600 to-purple-800 p-8 text-center rounded-2xl shadow-2xl relative overflow-hidden border border-slate-700">
                 <i class="fa-solid fa-swords absolute -left-4 -top-4 text-9xl text-black/10"></i>
                 <i class="fa-solid fa-shield-halved absolute -right-4 -bottom-4 text-9xl text-black/10"></i>
                 <h1 class="text-3xl md:text-4xl font-black text-white tracking-wider relative z-10 drop-shadow-md">烟雨楼 & 星辰璀璨</h1>
-                <p class="text-amber-100 mt-2 font-medium relative z-10">6月联赛双部落智能分配与公示大屏</p>
+                <p class="text-amber-100 mt-2 font-medium relative z-10">联赛双部落智能分配与公示大屏</p>
             </div>
 
             <!-- 双栏布局：左侧报名，右侧查询 -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- 报名栏 -->
                 <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl space-y-6">
                     <h2 class="text-xl font-bold text-amber-500 flex items-center gap-2">
@@ -97,15 +98,16 @@
             </div>
 
             <!-- 🔥 全局实战分组公示大屏 🔥 -->
-            <div class="glowing-border bg-slate-900/80 rounded-xl p-6 shadow-2xl space-y-6 mt-8">
-                <div class="text-center space-y-2">
-                    <h2 class="text-2xl md:text-3xl font-black text-cyan-400 tracking-wider flex justify-center items-center gap-3">
-                        <i class="fa-solid fa-display"></i> 全局联赛编队公示大屏
+            <div id="export-area" class="glowing-border bg-slate-900/90 rounded-xl p-6 shadow-2xl space-y-6 mt-8 relative">
+                
+                <div class="text-center space-y-1 mb-4">
+                    <h2 class="text-2xl md:text-3xl font-black text-cyan-400 tracking-wider flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-display"></i> 全局联赛作战大屏
                     </h2>
-                    <p class="text-slate-400 text-sm">实时同步首领的排兵布阵，请核对你的作战队伍和部落编号！</p>
+                    <p class="text-slate-400 text-sm">数据实时同步，请核对你的作战队伍和部落编号！</p>
                 </div>
                 
-                <div id="public-clan-cards-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div id="public-clan-cards-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                     <!-- 动态生成公共只读的战队卡片 -->
                     <div class="col-span-full text-center text-slate-500 py-8">
                         <i class="fa-solid fa-satellite-dish text-3xl opacity-20 mb-2 block animate-pulse"></i>
@@ -171,19 +173,6 @@
                         <p class="text-[10px] text-slate-400">空闲未分配</p>
                         <p id="stat-unassigned-players" class="text-lg font-black text-amber-400">0</p>
                     </div>
-                </div>
-            </div>
-
-            <!-- 🚨 全域数据库雷达面板 -->
-            <div class="bg-slate-900/90 border border-cyan-800/50 rounded-xl p-5 shadow-2xl relative overflow-hidden">
-                <div class="absolute right-[-20px] top-[-20px] opacity-10 radar-scan">
-                    <i class="fa-solid fa-satellite-dish text-9xl text-cyan-500"></i>
-                </div>
-                <h3 class="text-sm font-bold text-cyan-400 flex items-center gap-2 mb-3 relative z-10">
-                    <i class="fa-solid fa-radar"></i> 全域数据库搜寻雷达
-                </h3>
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-3 relative z-10" id="radar-grid">
-                    <!-- 雷达数据由 JS 动态填充 -->
                 </div>
             </div>
 
@@ -278,7 +267,7 @@
                 <h3 class="text-xl font-bold text-amber-500 flex items-center gap-2">
                     <i class="fa-solid fa-sitemap"></i> 联赛战队分组看板 (管理模式)
                 </h3>
-                <div id="clan-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div id="clan-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
                     <!-- 动态生成各个战队卡片 -->
                 </div>
             </div>
@@ -331,7 +320,6 @@
             { key: 'br_old', path: 'cwl_june_clan2', label: '星辰(旧档)' } 
         ];
 
-        let radarCounts = { hq_root: 0, hq_nested: 0, br_root: 0, br_nested: 0, br_old: 0 };
         let allPlayersMap = new Map(); 
         let clansData = [];
         let deleteTarget = null; 
@@ -349,7 +337,6 @@
         function startRadarListeners() {
             DATA_SOURCES.forEach(source => {
                 db.collection(source.path).onSnapshot(snapshot => {
-                    radarCounts[source.key] = snapshot.docs.length;
                     snapshot.docs.forEach(doc => {
                         allPlayersMap.set(doc.id, {
                             id: doc.id,
@@ -364,7 +351,6 @@
                             allPlayersMap.delete(key);
                         }
                     }
-                    updateRadarUI();
                     triggerUIRender();
                 }, err => {
                     console.log(`[雷达] ${source.path} error: ${err.message}`);
@@ -393,12 +379,11 @@
         function startClansListener() {
             db.collection(APP_ID + "_schedule_clans").onSnapshot(snapshot => {
                 clansData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // 自动按段位从高到低排序，如果段位相同则按创建时间
                 clansData.sort((a,b) => {
                     const weightA = getTierWeight(a.tier);
                     const weightB = getTierWeight(b.tier);
                     if (weightA !== weightB) {
-                        return weightB - weightA; // 降序，高的在上面
+                        return weightB - weightA; // 降序
                     }
                     return a.timestamp - b.timestamp;
                 });
@@ -408,7 +393,7 @@
 
         function triggerUIRender() {
             renderPlayerSearch();
-            renderPublicDashboard(); // 实时刷新前台大屏
+            renderPublicDashboard(); 
             if (!document.getElementById('view-adminDashboard').classList.contains('hidden')) {
                 renderAdminDashboard();
             }
@@ -446,7 +431,6 @@
             return { bg: 'bg-amber-900/20', text: 'text-amber-600', border: 'border-amber-900/30', icon: 'fa-award' }; 
         }
 
-        // 1-18本 专属大本营颜色
         function getThStyle(level) {
             const colors = {
                 18: 'bg-fuchsia-600/20 text-fuchsia-400 border-fuchsia-500/30',
@@ -546,8 +530,7 @@
                 return;
             }
 
-            let resultHTML = `<div class="w-full space-y-4 max-h-[400px] overflow-y-auto no-scrollbar text-left">`;
-            
+            let resultHTML = `<div class="w-full space-y-4 text-left">`;
             if (matches.length > 1) {
                 resultHTML += `<div class="text-xs text-cyan-400 font-bold mb-2"><i class="fa-solid fa-circle-info"></i> 找到 ${matches.length} 个名称匹配的玩家记录，请仔细核对：</div>`;
             }
@@ -604,7 +587,7 @@
         }
 
         // ==========================================
-        // 🌟 首页：全局编队公示大屏渲染 (已按段位排序)
+        // 🌟 首页：全局编队公示大屏渲染 (强制绝对统一网格)
         // ==========================================
         function renderPublicDashboard() {
             const publicCardsContainer = document.getElementById('public-clan-cards-grid');
@@ -620,7 +603,6 @@
             }
 
             publicCardsContainer.innerHTML = '';
-            // clansData 已经在 startClansListener 中自动排序过了
             clansData.forEach(clan => {
                 const style = getTierStyle(clan.tier);
                 const assignedPlayers = playersArray.filter(p => p.assignedClanId === clan.id);
@@ -635,25 +617,26 @@
                     }
                 });
 
+                // ⭐ 核心修改：尺寸绝对统一的 Grid 标签，防止长短不一
                 let playerRows = assignedPlayers.map((p, idx) => {
                     const srcDot = p.source === '烟雨楼' ? 'text-amber-400' : 'text-cyan-400';
                     const thColor = getThStyle(p.thLevel);
                     return `
-                    <div class="flex justify-between items-center bg-slate-900/50 p-2 rounded border border-slate-800 text-xs">
-                        <span class="font-medium text-slate-200 flex items-center gap-1.5 whitespace-nowrap overflow-hidden text-ellipsis">
-                            <i class="fa-solid fa-circle text-[6px] ${srcDot}"></i>
-                            ${idx+1}. ${p.name}
-                        </span>
-                        <span class="${thColor} border px-1 py-0.5 rounded font-extrabold text-[10px] whitespace-nowrap">${p.thLevel}本</span>
+                    <div class="flex justify-between items-center bg-slate-900/80 rounded border border-slate-700/50 text-xs px-2 py-1.5 hover:border-slate-500 transition-colors w-full">
+                        <div class="font-medium text-slate-200 flex items-center gap-1.5 truncate pr-1">
+                            <i class="fa-solid fa-circle text-[6px] ${srcDot} shrink-0"></i>
+                            <span class="truncate">${idx+1}.${p.name}</span>
+                        </div>
+                        <span class="${thColor} border px-1 py-0.5 rounded font-extrabold text-[10px] shrink-0">${p.thLevel}本</span>
                     </div>`;
                 }).join('');
 
                 if (playerRows === '') {
-                    playerRows = `<div class="text-slate-500 text-center py-4 text-xs italic">该战队目前没有集结任何人员</div>`;
+                    playerRows = `<div class="text-slate-500 text-center py-4 text-xs italic w-full">该战队目前没有集结任何人员</div>`;
                 }
 
                 publicCardsContainer.innerHTML += `
-                    <div class="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-5 flex flex-col space-y-4 hover:border-slate-500 transition-colors">
+                    <div class="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-5 flex flex-col space-y-4 hover:border-slate-500 transition-colors h-fit w-full">
                         <div class="flex justify-between items-start gap-2">
                             <div>
                                 <h4 class="text-lg font-bold text-white">${clan.name}</h4>
@@ -674,7 +657,8 @@
                             ${clanThSummary.join('<span class="text-slate-600">|</span>')}
                         </div>` : ''}
 
-                        <div class="space-y-1.5 max-h-[220px] overflow-y-auto no-scrollbar">
+                        <!-- ⭐ 这里使用 grid 和固定自适应列宽，确保每一个玩家标签尺寸绝对一模一样 ⭐ -->
+                        <div class="grid grid-cols-[repeat(auto-fill,minmax(135px,1fr))] gap-2 w-full">
                             ${playerRows}
                         </div>
                     </div>`;
@@ -699,24 +683,6 @@
         // ==========================================
         // 🛠️ 后台侧：首领智能分配与统筹
         // ==========================================
-        function updateRadarUI() {
-            const grid = document.getElementById('radar-grid');
-            grid.innerHTML = DATA_SOURCES.map(source => {
-                const count = radarCounts[source.key];
-                const color = count > 0 ? 'text-emerald-400 border-emerald-500/50 bg-emerald-950/20' : 'text-slate-500 border-slate-700 bg-slate-900';
-                const pulse = count > 0 ? 'animate-pulse' : '';
-                return `
-                    <div class="border ${color} p-2 rounded text-center transition-colors">
-                        <div class="text-[10px] text-slate-400 whitespace-nowrap overflow-hidden text-ellipsis">${source.label}</div>
-                        <div class="font-black text-lg flex items-center justify-center gap-1">
-                            ${count > 0 ? `<i class="fa-solid fa-satellite-dish text-[10px] ${pulse}"></i>` : ''}
-                            ${count}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-        
         document.getElementById('add-clan-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('clan-name').value.trim();
@@ -736,6 +702,21 @@
                 console.error("Create Clan Error:", error);
             }
         });
+
+        // ✏️ 修改：后台一键修改部落标签功能
+        window.editClanTag = async (clanId, currentTag) => {
+            const newTag = prompt("请输入正确的部落编号（标签）：", currentTag);
+            if (newTag !== null) {
+                try {
+                    await db.collection(APP_ID + "_schedule_clans").doc(clanId).update({
+                        tag: newTag.trim()
+                    });
+                } catch (error) {
+                    console.error("Update Clan Tag Error:", error);
+                    alert("修改失败，请重试！");
+                }
+            }
+        };
 
         function renderAdminDashboard() {
             const playersArray = getSortedPlayers();
@@ -828,26 +809,26 @@
                     }
                 });
 
+                // ⭐ 后台卡片也使用完全相同的网格对齐标签
                 let playerRows = assignedPlayers.map((p, idx) => {
                     const srcDot = p.source === '烟雨楼' ? 'text-amber-400' : 'text-cyan-400';
                     const thColor = getThStyle(p.thLevel);
                     return `
-                    <div class="flex justify-between items-center bg-slate-900/50 p-2 rounded border border-slate-800 text-xs">
-                        <span class="font-medium text-slate-200 flex items-center gap-1.5 whitespace-nowrap overflow-hidden text-ellipsis">
-                            <i class="fa-solid fa-circle text-[6px] ${srcDot}"></i>
-                            ${idx+1}. ${p.name}
-                        </span>
-                        <span class="${thColor} border px-1 py-0.5 rounded font-extrabold text-[10px] whitespace-nowrap">${p.thLevel}本</span>
+                    <div class="flex justify-between items-center bg-slate-900/80 rounded border border-slate-700/50 text-xs px-2 py-1.5 hover:border-slate-500 transition-colors w-full">
+                        <div class="font-medium text-slate-200 flex items-center gap-1.5 truncate pr-1">
+                            <i class="fa-solid fa-circle text-[6px] ${srcDot} shrink-0"></i>
+                            <span class="truncate">${idx+1}.${p.name}</span>
+                        </div>
+                        <span class="${thColor} border px-1 py-0.5 rounded font-extrabold text-[10px] shrink-0">${p.thLevel}本</span>
                     </div>`;
                 }).join('');
 
                 if (playerRows === '') {
-                    playerRows = `<div class="text-slate-500 text-center py-4 text-xs italic">该战队目前没有集结任何人员</div>`;
+                    playerRows = `<div class="text-slate-500 text-center py-4 text-xs italic w-full">该战队目前没有集结任何人员</div>`;
                 }
 
-                // 卡片上展示部落编号
                 clanCardsContainer.innerHTML += `
-                    <div class="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-5 flex flex-col space-y-4 hover:border-slate-500 transition-colors">
+                    <div class="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-5 flex flex-col space-y-4 hover:border-slate-500 transition-colors h-fit w-full">
                         <div class="flex justify-between items-start gap-2">
                             <div>
                                 <h4 class="text-md font-bold text-white">${clan.name}</h4>
@@ -856,9 +837,14 @@
                                     <i class="fa-solid ${style.icon}"></i> ${clan.tier}
                                 </div>
                             </div>
-                            <button onclick="triggerDelete('clan', '${clan.id}', '${clan.name}')" class="text-slate-500 hover:text-red-400 p-1" title="解散此战队">
-                                <i class="fa-solid fa-circle-xmark"></i>
-                            </button>
+                            <div class="flex gap-2">
+                                <button onclick="editClanTag('${clan.id}', '${clan.tag || ''}')" class="text-slate-400 hover:text-cyan-400 p-1" title="修改部落标签">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button onclick="triggerDelete('clan', '${clan.id}', '${clan.name}')" class="text-slate-500 hover:text-red-400 p-1" title="解散此战队">
+                                    <i class="fa-solid fa-circle-xmark"></i>
+                                </button>
+                            </div>
                         </div>
                         
                         <div class="bg-slate-900/80 p-2.5 rounded border border-slate-800 flex justify-between items-center text-xs">
@@ -871,7 +857,8 @@
                             ${clanThSummary.join('<span class="text-slate-600">|</span>')}
                         </div>` : ''}
 
-                        <div class="space-y-1.5 max-h-[180px] overflow-y-auto no-scrollbar">
+                        <!-- ⭐ 网格对齐 -->
+                        <div class="grid grid-cols-[repeat(auto-fill,minmax(135px,1fr))] gap-2 w-full">
                             ${playerRows}
                         </div>
                     </div>`;
