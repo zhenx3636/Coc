@@ -29,7 +29,7 @@
                 <p class="text-amber-100 mt-2 font-medium relative z-10">联赛双部集结与实战公示大屏</p>
                 <div class="absolute top-4 right-4 text-[10px] text-white/50 flex items-center gap-1">
                     <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 sync-dot"></div>
-                    全球极速直连中
+                    系统防弹模式运行中
                 </div>
             </div>
 
@@ -277,14 +277,15 @@
 
     <script>
         // ==========================================
-        // 🚀 UPSTASH REDIS 核心连接引擎 (满血复活稳定版)
+        // 🚀 UPSTASH REDIS 核心连接引擎 (终极防毒断腕版)
         // ==========================================
         const UPSTASH_URL = "https://together-basilisk-101054.upstash.io".trim();
         const UPSTASH_TOKEN = "gQAAAAAAAYq-AAIgcDEzODU4OTJjN2I2NTE0Yjg2OWUwZDZmN2Y0MDQ2NDVlMQ".trim();
         
-        const KEY_PLAYERS = "coc_active_players";
-        const KEY_CLANS = "coc_active_clans";
-        const KEY_SETTINGS = "coc_active_settings";
+        // 🚨 换锁：直接使用全新的键名，彻底抛弃之前因为乱码而崩溃的毒数据！
+        const KEY_PLAYERS = "coc_prod_players_v1";
+        const KEY_CLANS = "coc_prod_clans_v1";
+        const KEY_SETTINGS = "coc_prod_settings_v1";
         const ADMIN_SECRET = 'coc2026';
 
         let allPlayers = [];
@@ -297,12 +298,16 @@
         
         let localDataHash = "";
 
+        // 🛡️ 防护盾牌：确保哪怕数据被玩坏了，也绝对强制转换成正确的数组，绝不崩溃！
         function safeParse(str, defaultVal) {
-            try { return str ? JSON.parse(str) : defaultVal; } 
+            try { 
+                const parsed = str ? JSON.parse(str) : defaultVal; 
+                if (Array.isArray(defaultVal) && !Array.isArray(parsed)) return defaultVal;
+                return parsed;
+            } 
             catch(e) { return defaultVal; }
         }
 
-        // 核心读取函数 (增加了 force 参数来强制刷新画面)
         async function fetchGlobalData(force = false) {
             if(isFetching) return;
             isFetching = true;
@@ -315,7 +320,6 @@
                 const data = await res.json();
                 
                 const newHash = JSON.stringify(data);
-                // 只有数据真变了，或者刚刚点过写入按钮 (force)，才重绘画画，防止闪烁
                 if (!force && newHash === localDataHash) {
                     isFetching = false;
                     return; 
@@ -345,14 +349,22 @@
             isFetching = false;
         }
 
-        // 🔥 修复了写入 Bug：恢复使用最稳定的绝对写入路径
+        // ⚔️ 终极修复：使用最权威、不会引发双重转义的官方 REST 写入标准格式
         async function updateRedisKey(key, value) {
-            await fetch(`${UPSTASH_URL}/set/${key}`, {
-                method: 'POST',
-                headers: { Authorization: `Bearer ${UPSTASH_TOKEN}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify(JSON.stringify(value))
-            });
-            await fetchGlobalData(true); // 强制让画面瞬间刷新，无需等3秒
+            try {
+                await fetch(UPSTASH_URL, {
+                    method: 'POST',
+                    headers: { 
+                        Authorization: `Bearer ${UPSTASH_TOKEN}`, 
+                        'Content-Type': 'application/json' 
+                    },
+                    // 这是 Upstash 官方标准：直接传命令数组
+                    body: JSON.stringify(["SET", key, JSON.stringify(value)])
+                });
+                await fetchGlobalData(true);
+            } catch (e) {
+                console.error("写入网络错误", e);
+            }
         }
 
         fetchGlobalData();
@@ -707,7 +719,7 @@
         }
 
         // ==========================================
-        // 🗑️ 安全删除模态模块 (已添加一键清空闲置)
+        // 🗑️ 安全删除模态模块
         // ==========================================
         window.triggerDelete = (type, id, name) => {
             deleteTarget = { type, id };
@@ -737,7 +749,6 @@
                 await executeResetSeason();
             } 
             else if (deleteTarget.type === 'all_idle') {
-                // 过滤保留：只保留那些已经有队伍的人 (即有 assignedClanId 的人)
                 let updatedPlayers = allPlayers.filter(p => p.assignedClanId && p.assignedClanId !== "");
                 await updateRedisKey(KEY_PLAYERS, updatedPlayers);
                 closeDeleteModal();
