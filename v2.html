@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>联赛部落智能分配大屏</title>
+    <title>联赛双部落智能分配大屏</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -102,7 +102,7 @@
                 <div id="public-clan-cards-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                     <div class="col-span-full text-center text-slate-500 py-8">
                         <i class="fa-solid fa-satellite-dish text-3xl opacity-20 mb-2 block animate-pulse"></i>
-                        正在获取实时战场数据...
+                        <br>正在获取实时战场数据...
                     </div>
                 </div>
             </div>
@@ -272,12 +272,11 @@
 
     <script>
         // ==========================================
-        // 🚀 UPSTASH REDIS 核心连接引擎 (永久通用版)
+        // 🚀 UPSTASH REDIS 核心连接引擎 (完美修复版)
         // ==========================================
-        const UPSTASH_URL = "https://together-basilisk-101054.upstash.io";
-        const UPSTASH_TOKEN = "gQAAAAAAAYq-AAIgcDEzODU4OTJjN2I2NTE0Yjg2OWUwZDZmN2Y0MDQ2NDVlMQ";
+        const UPSTASH_URL = "https://together-basilisk-101054.upstash.io".trim();
+        const UPSTASH_TOKEN = "gQAAAAAAAYq-AAIgcDEzODU4OTJjN2I2NTE0Yjg2OWUwZDZmN2Y0MDQ2NDVlMQ".trim();
         
-        // 数据键名 (通用赛季隔离，永不需要修改)
         const KEY_PLAYERS = "coc_active_players";
         const KEY_CLANS = "coc_active_clans";
         const KEY_SETTINGS = "coc_active_settings";
@@ -290,8 +289,16 @@
         let deleteTarget = null; 
         let currentPickerClanId = null; 
         let isFetching = false;
+        
+        // 💡 智能指纹对比：防止画面疯狂闪烁打断操作
+        let localDataHash = "";
 
-        // 核心心跳同步机制 (每 3 秒自动获取全球最新数据)
+        // 安全解析 JSON，防止数据库出现意外空值导致网页崩溃
+        function safeParse(str, defaultVal) {
+            try { return str ? JSON.parse(str) : defaultVal; } 
+            catch(e) { return defaultVal; }
+        }
+
         async function fetchGlobalData() {
             if(isFetching) return;
             isFetching = true;
@@ -303,9 +310,18 @@
                 });
                 const data = await res.json();
                 
-                appSettings = data[0].result ? JSON.parse(data[0].result) : { registrationLocked: false };
-                allPlayers = data[1].result ? JSON.parse(data[1].result) : [];
-                let newClans = data[2].result ? JSON.parse(data[2].result) : [];
+                // 生成当前数据的指纹
+                const newHash = JSON.stringify(data);
+                // 如果数据没变，直接停止，绝对不刷新页面打断用户操作！
+                if (newHash === localDataHash) {
+                    isFetching = false;
+                    return; 
+                }
+                localDataHash = newHash; // 更新本地指纹
+                
+                appSettings = safeParse(data[0]?.result, { registrationLocked: false });
+                allPlayers = safeParse(data[1]?.result, []);
+                let newClans = safeParse(data[2]?.result, []);
                 
                 clansData = newClans.sort((a,b) => {
                     const wA = getTierWeight(a.tier); const wB = getTierWeight(b.tier);
@@ -318,20 +334,25 @@
                 if (!document.getElementById('view-adminDashboard').classList.contains('hidden')) {
                     renderAdminDashboard();
                 }
-            } catch (e) { console.error("数据同步延迟", e); }
+                // 如果正在选人，实时更新选人弹窗
+                if (!document.getElementById('picker-modal').classList.contains('hidden') && currentPickerClanId) {
+                    openPicker(currentPickerClanId, document.getElementById('picker-clan-name').innerText, parseInt(document.getElementById('picker-th-level').innerText));
+                }
+            } catch (e) { console.error("数据同步失败，请检查网络", e); }
             isFetching = false;
         }
 
         async function updateRedisKey(key, value) {
-            await fetch(`${UPSTASH_URL}/set/${key}`, {
+            // 使用标准的 pipeline SET 保证存入格式绝对正确
+            await fetch(`${UPSTASH_URL}/pipeline`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${UPSTASH_TOKEN}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify(JSON.stringify(value))
+                body: JSON.stringify([ ["SET", key, JSON.stringify(value)] ])
             });
-            await fetchGlobalData(); // 更新后立即拉取呈现
+            await fetchGlobalData(); 
         }
 
-        // 页面启动时初始化并启动 3 秒心跳
+        // 页面启动，并开启 3 秒智能心跳
         fetchGlobalData();
         setInterval(fetchGlobalData, 3000);
 
@@ -520,7 +541,7 @@
                 const assigned = players.filter(p => p.assignedClanId === clan.id);
                 const cap = clan.capacity || 15;
                 const isFull = assigned.length >= cap;
-                const capColor = assigned.length > cap ? 'text-red-400 animate-pulse' : (isFull ? 'text-emerald-400' : 'text-amber-400');
+                const capColor = assigned.length > cap ? 'text-red-400 animate-pulse font-bold' : (isFull ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold');
                 
                 let playerRows = assigned.map((p, idx) => `
                     <div class="flex justify-between items-center bg-slate-900/80 rounded border border-slate-700/50 text-xs px-2 py-1.5 w-full hover:border-slate-500 transition-colors">
@@ -546,7 +567,7 @@
                     </div>
                     <div class="bg-slate-900 p-2 rounded flex justify-between items-center text-xs border border-slate-700">
                         <span class="text-slate-400">参战规模:</span>
-                        <span class="font-extrabold ${capColor}">${assigned.length} / ${cap} 人</span>
+                        <span class="${capColor}">${assigned.length} / ${cap} 人</span>
                     </div>
                     <div class="grid grid-cols-[repeat(auto-fill,minmax(135px,1fr))] gap-2 w-full">${playerRows}</div>
                 </div>`;
@@ -554,7 +575,7 @@
         }
 
         // ==========================================
-        // 🛠️ 后台大师面板
+        // 🛠️ 后台大师面板 (修复闪烁与选人Bug)
         // ==========================================
         document.getElementById('add-clan-form').addEventListener('submit', async (e) => {
             e.preventDefault();
