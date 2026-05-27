@@ -220,11 +220,16 @@
                 </div>
 
                 <div class="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-5 flex flex-col h-full">
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="font-bold text-red-400 flex items-center gap-2">
-                            <i class="fa-solid fa-campground"></i> 空闲待命大厅 (闲置人员池)
-                        </span>
-                        <div class="flex flex-wrap gap-1 max-w-[60%] justify-end" id="th-filters-container">
+                    <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-red-400 flex items-center gap-2">
+                                <i class="fa-solid fa-campground"></i> 空闲待命大厅
+                            </span>
+                            <button onclick="triggerDelete('all_idle', '', '')" class="text-[10px] bg-red-900/60 hover:bg-red-600 text-red-200 border border-red-700/50 px-2 py-1 rounded transition-colors flex items-center gap-1 shadow">
+                                <i class="fa-solid fa-trash-can"></i> 一键清空闲置
+                            </button>
+                        </div>
+                        <div class="flex flex-wrap gap-1 max-w-[50%] justify-end" id="th-filters-container">
                             </div>
                     </div>
                     
@@ -272,7 +277,7 @@
 
     <script>
         // ==========================================
-        // 🚀 UPSTASH REDIS 核心连接引擎 (完美修复版)
+        // 🚀 UPSTASH REDIS 核心连接引擎 (满血复活稳定版)
         // ==========================================
         const UPSTASH_URL = "https://together-basilisk-101054.upstash.io".trim();
         const UPSTASH_TOKEN = "gQAAAAAAAYq-AAIgcDEzODU4OTJjN2I2NTE0Yjg2OWUwZDZmN2Y0MDQ2NDVlMQ".trim();
@@ -290,16 +295,15 @@
         let currentPickerClanId = null; 
         let isFetching = false;
         
-        // 💡 智能指纹对比：防止画面疯狂闪烁打断操作
         let localDataHash = "";
 
-        // 安全解析 JSON，防止数据库出现意外空值导致网页崩溃
         function safeParse(str, defaultVal) {
             try { return str ? JSON.parse(str) : defaultVal; } 
             catch(e) { return defaultVal; }
         }
 
-        async function fetchGlobalData() {
+        // 核心读取函数 (增加了 force 参数来强制刷新画面)
+        async function fetchGlobalData(force = false) {
             if(isFetching) return;
             isFetching = true;
             try {
@@ -310,14 +314,13 @@
                 });
                 const data = await res.json();
                 
-                // 生成当前数据的指纹
                 const newHash = JSON.stringify(data);
-                // 如果数据没变，直接停止，绝对不刷新页面打断用户操作！
-                if (newHash === localDataHash) {
+                // 只有数据真变了，或者刚刚点过写入按钮 (force)，才重绘画画，防止闪烁
+                if (!force && newHash === localDataHash) {
                     isFetching = false;
                     return; 
                 }
-                localDataHash = newHash; // 更新本地指纹
+                localDataHash = newHash; 
                 
                 appSettings = safeParse(data[0]?.result, { registrationLocked: false });
                 allPlayers = safeParse(data[1]?.result, []);
@@ -334,25 +337,24 @@
                 if (!document.getElementById('view-adminDashboard').classList.contains('hidden')) {
                     renderAdminDashboard();
                 }
-                // 如果正在选人，实时更新选人弹窗
+                
                 if (!document.getElementById('picker-modal').classList.contains('hidden') && currentPickerClanId) {
                     openPicker(currentPickerClanId, document.getElementById('picker-clan-name').innerText, parseInt(document.getElementById('picker-th-level').innerText));
                 }
-            } catch (e) { console.error("数据同步失败，请检查网络", e); }
+            } catch (e) { console.error("读取数据失败", e); }
             isFetching = false;
         }
 
+        // 🔥 修复了写入 Bug：恢复使用最稳定的绝对写入路径
         async function updateRedisKey(key, value) {
-            // 使用标准的 pipeline SET 保证存入格式绝对正确
-            await fetch(`${UPSTASH_URL}/pipeline`, {
+            await fetch(`${UPSTASH_URL}/set/${key}`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${UPSTASH_TOKEN}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify([ ["SET", key, JSON.stringify(value)] ])
+                body: JSON.stringify(JSON.stringify(value))
             });
-            await fetchGlobalData(); 
+            await fetchGlobalData(true); // 强制让画面瞬间刷新，无需等3秒
         }
 
-        // 页面启动，并开启 3 秒智能心跳
         fetchGlobalData();
         setInterval(fetchGlobalData, 3000);
 
@@ -363,9 +365,6 @@
             });
         }
 
-        // ==========================================
-        // 🔒 全局控制开关：封锁报名
-        // ==========================================
         function updateLockUI() {
             const btn = document.getElementById('toggle-lock-btn');
             const overlay = document.getElementById('registration-locked-overlay');
@@ -387,9 +386,6 @@
             await updateRedisKey(KEY_SETTINGS, appSettings);
         }
 
-        // ==========================================
-        // ♻️ 一键重置赛季 (核弹按钮)
-        // ==========================================
         function triggerResetSeason() {
             deleteTarget = { type: 'reset_season' };
             const textElement = document.getElementById('delete-modal-text');
@@ -414,9 +410,6 @@
             alert('系统已清理完毕，全新赛季就绪！');
         }
 
-        // ==========================================
-        // 🎨 UI 工具库
-        // ==========================================
         function switchView(viewName) {
             document.getElementById('view-register').classList.add('hidden');
             document.getElementById('view-adminLogin').classList.add('hidden');
@@ -453,9 +446,6 @@
             return colors[level] || 'bg-gray-600/20 text-gray-400 border-gray-500/30';
         }
 
-        // ==========================================
-        // ✍️ 玩家报名与搜索逻辑
-        // ==========================================
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             if(appSettings.registrationLocked) return;
@@ -574,9 +564,6 @@
             }).join('');
         }
 
-        // ==========================================
-        // 🛠️ 后台大师面板 (修复闪烁与选人Bug)
-        // ==========================================
         document.getElementById('add-clan-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.submitter; btn.disabled = true;
@@ -720,7 +707,7 @@
         }
 
         // ==========================================
-        // 🗑️ 安全删除模态模块
+        // 🗑️ 安全删除模态模块 (已添加一键清空闲置)
         // ==========================================
         window.triggerDelete = (type, id, name) => {
             deleteTarget = { type, id };
@@ -729,7 +716,9 @@
             inputElement.classList.add('hidden'); 
 
             if (type === 'player') textElement.innerText = `确定彻底抹除玩家 [${name}] 的记录吗？`;
-            else textElement.innerText = `解散战队 [${name}] 后，所有成员将自动转入空闲状态。`;
+            else if (type === 'clan') textElement.innerText = `解散战队 [${name}] 后，所有成员将自动转入空闲状态。`;
+            else if (type === 'all_idle') textElement.innerHTML = `<span class="text-red-400 font-bold">确定要一键抹除目前【闲置大厅】里的所有人吗？</span><br>（已经分配到队伍里的成员绝对不会受影响）`;
+            
             document.getElementById('delete-modal').classList.remove('hidden');
         }
 
@@ -741,12 +730,24 @@
 
         document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
             if (!deleteTarget) return;
-            if (deleteTarget.type === 'reset_season') return executeResetSeason();
+            const btn = document.getElementById('confirm-delete-btn');
+            btn.innerText = '执行中...'; btn.disabled = true;
 
-            if (deleteTarget.type === 'player') {
+            if (deleteTarget.type === 'reset_season') {
+                await executeResetSeason();
+            } 
+            else if (deleteTarget.type === 'all_idle') {
+                // 过滤保留：只保留那些已经有队伍的人 (即有 assignedClanId 的人)
+                let updatedPlayers = allPlayers.filter(p => p.assignedClanId && p.assignedClanId !== "");
+                await updateRedisKey(KEY_PLAYERS, updatedPlayers);
+                closeDeleteModal();
+            }
+            else if (deleteTarget.type === 'player') {
                 let updatedPlayers = allPlayers.filter(p => p.id !== deleteTarget.id);
                 await updateRedisKey(KEY_PLAYERS, updatedPlayers);
-            } else {
+                closeDeleteModal();
+            } 
+            else if (deleteTarget.type === 'clan') {
                 let updatedClans = clansData.filter(c => c.id !== deleteTarget.id);
                 await updateRedisKey(KEY_CLANS, updatedClans);
                 
@@ -755,8 +756,10 @@
                     return p;
                 });
                 await updateRedisKey(KEY_PLAYERS, updatedPlayers);
+                closeDeleteModal();
             }
-            closeDeleteModal();
+            
+            btn.innerText = '确定'; btn.disabled = false;
         });
 
         // 登录
