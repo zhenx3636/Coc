@@ -3,81 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>烟雨楼 & 星辰璀璨 | 高密度全景雷达</title>
+    <title>战争实况全景雷达</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background-color: #020617; color: white; font-family: 'PingFang SC', sans-serif; }
-        .radar-scan { background: radial-gradient(circle at 50% 0%, rgba(6,182,212,0.1) 0%, rgba(2,6,23,1) 80%); }
+        body { font-family: 'PingFang SC', sans-serif; }
         .hidden { display: none !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .dense-table th, .dense-table td { padding: 5px 6px; font-size: 11px; white-space: nowrap; }
-        .row-missed { background-color: rgba(127, 29, 29, 0.2); }
-        .row-done { background-color: rgba(15, 23, 42, 0.5); }
+        .row-missed { background-color: rgba(127, 29, 29, 0.15); }
+        .row-done { background-color: rgba(15, 23, 42, 0.3); }
+        /* 磨砂玻璃质感面板 */
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
     </style>
 </head>
-<body class="selection:bg-cyan-500/30 min-h-screen p-2 radar-scan">
+<body class="selection:bg-cyan-500/30 min-h-screen p-2 bg-gradient-to-br from-[#0f172a] via-[#090b14] to-[#020617] text-slate-200">
     <div class="max-w-6xl mx-auto space-y-3">
         
-        <div class="flex justify-between items-center bg-slate-900 border border-slate-700 p-2 rounded-lg shadow-xl">
-            <h1 class="text-sm md:text-lg font-black tracking-widest flex items-center gap-2 text-cyan-400">
-                <i class="fa-solid fa-satellite-dish animate-pulse"></i> 战争实况总览
+        <div class="glass-panel border border-slate-700/60 p-2 md:p-3 rounded-xl shadow-2xl flex flex-col md:flex-row justify-between items-center gap-3">
+            <h1 class="text-sm md:text-lg font-black tracking-widest flex items-center gap-2 text-cyan-400 shrink-0">
+                <i class="fa-solid fa-satellite-dish animate-pulse"></i> 战争实况侦察
             </h1>
-            <div class="flex gap-1 bg-slate-800 p-1 rounded-md border border-slate-700">
-                <button onclick="loadWarData('hq')" id="btn-hq" class="px-3 py-1 rounded text-[10px] font-bold bg-amber-600 text-white shadow-lg">烟雨楼</button>
-                <button onclick="loadWarData('br')" id="btn-br" class="px-3 py-1 rounded text-[10px] font-bold text-slate-400 hover:text-white">星辰璀璨</button>
+            
+            <div class="flex flex-wrap md:flex-nowrap items-center gap-2 w-full md:w-auto">
+                <div class="flex gap-1 bg-slate-900/80 p-1 rounded-md border border-slate-700/50 shrink-0">
+                    <button onclick="loadWarData('hq')" id="btn-hq" class="px-3 py-1.5 rounded text-[10px] font-bold bg-amber-600 text-white shadow-lg transition-colors">烟雨楼</button>
+                    <button onclick="loadWarData('br')" id="btn-br" class="px-3 py-1.5 rounded text-[10px] font-bold text-slate-400 hover:text-white transition-colors">星辰璀璨</button>
+                </div>
+                <div class="flex flex-grow md:w-48 bg-slate-900/80 border border-slate-700/50 rounded-md overflow-hidden focus-within:border-cyan-500 transition-colors">
+                    <input type="text" id="search-input" placeholder="输入其它部落 # 标签" class="w-full bg-transparent px-2 py-1 text-xs text-white focus:outline-none uppercase font-mono">
+                    <button onclick="searchClan()" class="px-3 py-1 bg-slate-800 hover:bg-cyan-700 text-slate-300 hover:text-white transition-colors"><i class="fa-solid fa-magnifying-glass text-[10px]"></i></button>
+                </div>
             </div>
         </div>
 
-        <div id="loading-box" class="text-center py-10 text-cyan-400 text-sm"><i class="fa-solid fa-spinner animate-spin text-xl mb-2"></i><p>接收卫星信号中...</p></div>
-        <div id="error-box" class="hidden text-center py-10 text-red-500 font-bold bg-red-950/20 rounded-lg border border-red-500/30 p-4"><p id="error-msg" class="text-xs"></p></div>
+        <div id="loading-box" class="text-center py-10 text-cyan-500 text-sm font-medium"><i class="fa-solid fa-spinner animate-spin text-xl mb-2"></i><p>跨域侦察卫星连接中...</p></div>
+        <div id="error-box" class="hidden text-center py-10 text-red-400 font-bold bg-red-950/20 rounded-xl border border-red-500/30 p-4"><p id="error-msg" class="text-xs"></p></div>
 
         <div id="war-dashboard" class="hidden space-y-3">
             
-            <div class="bg-slate-900 border border-slate-700 rounded-lg p-2 shadow-xl flex justify-between items-center relative overflow-hidden">
-                <div class="absolute inset-0 opacity-5 flex justify-center items-center font-black text-6xl italic z-0">VS</div>
+            <div class="glass-panel border border-slate-700/60 rounded-xl p-3 shadow-xl flex justify-between items-center relative overflow-hidden">
+                <div class="absolute inset-0 opacity-[0.03] flex justify-center items-center font-black text-6xl italic z-0 pointer-events-none">VS</div>
                 <div class="w-[35%] text-left relative z-10">
-                    <h2 id="my-clan-name" class="text-sm font-black text-amber-500 truncate">烟雨楼</h2>
+                    <h2 id="my-clan-name" class="text-sm md:text-base font-black text-amber-500 truncate">载入中</h2>
                     <div class="flex items-baseline gap-1 mt-0.5">
-                        <span class="text-xl font-black text-white" id="my-stars">0</span>
+                        <span class="text-2xl font-black text-white drop-shadow-md" id="my-stars">0</span>
                         <span class="text-[9px] text-slate-400"><i class="fa-solid fa-star text-amber-400"></i> | <span id="my-dest">0%</span></span>
                     </div>
                 </div>
                 <div class="w-[30%] text-center relative z-10 flex flex-col items-center">
-                    <div class="text-[9px] text-cyan-400 font-mono tracking-widest mb-1" id="war-status-time"></div>
-                    <div class="bg-slate-950 border border-slate-700 px-3 py-0.5 rounded-full flex items-center gap-1.5 shadow-inner">
+                    <div class="text-[9px] text-cyan-400 font-mono tracking-widest mb-1.5 drop-shadow" id="war-status-time"></div>
+                    <div class="bg-[#020617] border border-slate-700/80 px-4 py-1 rounded-full flex items-baseline gap-1.5 shadow-inner">
                         <span class="text-[9px] text-slate-500">剩余</span>
-                        <span class="font-black text-sm text-cyan-400" id="attacks-left">0</span>
+                        <span class="font-black text-base text-cyan-400" id="attacks-left">0</span>
                         <span class="text-[9px] text-slate-500">刀</span>
                     </div>
                 </div>
                 <div class="w-[35%] text-right relative z-10">
-                    <h2 id="opp-clan-name" class="text-sm font-black text-slate-300 truncate">匹配中...</h2>
+                    <h2 id="opp-clan-name" class="text-sm md:text-base font-black text-slate-300 truncate">载入中</h2>
                     <div class="flex items-baseline gap-1 mt-0.5 justify-end">
                         <span class="text-[9px] text-slate-400"><span id="opp-dest">0%</span> | <i class="fa-solid fa-star text-slate-500"></i></span>
-                        <span class="text-xl font-black text-white" id="opp-stars">0</span>
+                        <span class="text-2xl font-black text-white drop-shadow-md" id="opp-stars">0</span>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-slate-900 border border-slate-700 rounded-lg shadow-xl overflow-hidden">
-                <div class="bg-slate-800 border-b border-slate-700 px-2 py-1.5 flex justify-between items-center">
-                    <span class="text-[10px] font-bold text-slate-300"><i class="fa-solid fa-table-cells text-cyan-400"></i> 攻防全景图</span>
-                    <span class="text-[9px] text-red-400 animate-pulse"><i class="fa-solid fa-skull"></i> 红色底纹为未打满成员</span>
+            <div class="glass-panel border border-slate-700/60 rounded-xl shadow-xl overflow-hidden">
+                <div class="bg-slate-900/50 border-b border-slate-700/60 px-3 py-2 flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-slate-300 tracking-wider"><i class="fa-solid fa-table-cells text-cyan-500"></i> 作战明细日志</span>
+                    <span class="text-[9px] text-red-400 bg-red-950/30 px-2 py-0.5 rounded border border-red-900/50"><i class="fa-solid fa-circle-exclamation"></i> 红色底纹为未打满成员</span>
                 </div>
                 
                 <div class="overflow-x-auto no-scrollbar">
                     <table class="w-full text-left dense-table">
-                        <thead class="bg-slate-950 text-slate-500 border-b border-slate-800">
+                        <thead class="bg-slate-950/80 text-slate-400 border-b border-slate-800/80">
                             <tr>
                                 <th class="text-center font-mono w-6">#</th>
                                 <th>参战指挥官</th>
                                 <th id="th-atk-1">攻击 1</th>
                                 <th id="th-atk-2" class="hidden">攻击 2</th>
-                                <th class="text-right text-emerald-400 border-l border-slate-800 pl-2">防守状态</th>
+                                <th class="text-right text-emerald-400/80 border-l border-slate-800/80 pl-2">防守状态</th>
                             </tr>
                         </thead>
-                        <tbody id="members-list" class="divide-y divide-slate-800/60">
+                        <tbody id="members-list" class="divide-y divide-slate-800/40">
                             </tbody>
                     </table>
                 </div>
@@ -93,9 +101,26 @@
             return new Date(`${year}-${month}-${day}T${hour}:${min}:${sec}Z`);
         }
 
-        async function loadWarData(clanPrefix) {
-            document.getElementById('btn-hq').className = clanPrefix === 'hq' ? 'px-3 py-1 rounded text-[10px] font-bold bg-amber-600 text-white shadow-lg' : 'px-3 py-1 rounded text-[10px] font-bold text-slate-400 hover:text-white';
-            document.getElementById('btn-br').className = clanPrefix === 'br' ? 'px-3 py-1 rounded text-[10px] font-bold bg-cyan-700 text-white shadow-lg' : 'px-3 py-1 rounded text-[10px] font-bold text-slate-400 hover:text-white';
+        // 触发搜索
+        function searchClan() {
+            let val = document.getElementById('search-input').value.trim();
+            if(!val) return;
+            val = val.replace('#', '').toUpperCase();
+            loadWarData(val, true);
+        }
+
+        async function loadWarData(clanPrefix, isCustomSearch = false) {
+            // UI 按钮高亮逻辑
+            const btnHq = document.getElementById('btn-hq');
+            const btnBr = document.getElementById('btn-br');
+            if (isCustomSearch) {
+                btnHq.className = 'px-3 py-1.5 rounded text-[10px] font-bold text-slate-400 hover:text-white transition-colors bg-transparent';
+                btnBr.className = 'px-3 py-1.5 rounded text-[10px] font-bold text-slate-400 hover:text-white transition-colors bg-transparent';
+            } else {
+                document.getElementById('search-input').value = '';
+                btnHq.className = clanPrefix === 'hq' ? 'px-3 py-1.5 rounded text-[10px] font-bold bg-amber-600 text-white shadow-lg transition-colors' : 'px-3 py-1.5 rounded text-[10px] font-bold text-slate-400 hover:text-white transition-colors bg-transparent';
+                btnBr.className = clanPrefix === 'br' ? 'px-3 py-1.5 rounded text-[10px] font-bold bg-cyan-700 text-white shadow-lg transition-colors' : 'px-3 py-1.5 rounded text-[10px] font-bold text-slate-400 hover:text-white transition-colors bg-transparent';
+            }
             
             document.getElementById('loading-box').classList.remove('hidden');
             document.getElementById('war-dashboard').classList.add('hidden');
@@ -105,10 +130,11 @@
                 const res = await fetch(`/api/war?tag=${clanPrefix}`);
                 const data = await res.json();
 
-                if (data.reason === 'accessDenied') throw new Error("⚠️ 官方拦截：部落战日志未公开！<br>请去游戏设置内公开，并等待10分钟。");
-                if (data.state === 'notInWar') throw new Error("💤 当前不在战争期或匹配中。");
+                if (data.reason === 'accessDenied') throw new Error("⚠️ 官方拦截：该部落未公开【部落战日志】！<br><span class='text-[10px] text-slate-400 font-normal'>只有公开了日志的部落才能被侦察。</span>");
+                if (data.reason === 'notFound') throw new Error("❌ 找不到该部落，请检查标签 # 是否输入正确。");
+                if (data.state === 'notInWar') throw new Error("💤 该部落当前不在战争期，或正在匹配中。");
                 if (data.error) throw new Error(data.error);
-                if (!data.clan || !data.clan.name) throw new Error("未能获取官方完整数据。");
+                if (!data.clan || !data.clan.name) throw new Error("获取数据异常，可能是官方API波动。");
 
                 renderDashboard(data);
                 
@@ -121,47 +147,42 @@
             }
         }
 
-        // 渲染进攻 (加入防 undefined 的对手战位解析)
         function renderAttackCell(atk, oppMap) {
-            if (!atk) return `<span class="text-slate-700 font-mono">-</span>`;
+            if (!atk) return `<span class="text-slate-700/50 font-mono">-</span>`;
             const starColor = atk.stars === 3 ? 'text-amber-400 font-black' : (atk.stars > 0 ? 'text-slate-200 font-bold' : 'text-slate-500');
-            // 解决 undefined 问题：通过防守者的 Tag 去查他的号数
             const oppPos = oppMap[atk.defenderTag] || "?"; 
             
             return `
                 <div class="flex items-center gap-1.5">
                     <span class="w-6 ${starColor}">${atk.stars}<i class="fa-solid fa-star text-[7px] ml-[1px]"></i></span>
                     <span class="w-7 text-[9px] ${atk.destructionPercentage === 100 ? 'text-amber-500/80' : 'text-slate-400'}">${atk.destructionPercentage}%</span>
-                    <span class="text-[9px] text-slate-500">打</span>
-                    <span class="bg-slate-800 text-cyan-400 font-mono text-[9px] px-1 rounded border border-slate-700">#${oppPos}</span>
+                    <span class="text-[8px] text-slate-500">打</span>
+                    <span class="bg-[#020617] text-cyan-400/90 font-mono text-[9px] px-1 rounded border border-slate-700/80 shadow-inner">#${oppPos}</span>
                 </div>
             `;
         }
 
-        // 渲染防守状态
         function renderDefenseCell(m) {
             if (!m.opponentAttacks || m.opponentAttacks === 0) {
-                return `<span class="text-[9px] text-emerald-500/80 bg-emerald-950/30 px-1.5 py-0.5 rounded border border-emerald-900">未被攻击</span>`;
+                return `<span class="text-[9px] text-emerald-500/80 bg-emerald-950/20 px-1.5 py-0.5 rounded border border-emerald-900/50">未被攻击</span>`;
             }
             const bestAtk = m.bestOpponentAttack;
-            if (!bestAtk) return `<span class="text-[9px] text-slate-500">数据缺失</span>`;
+            if (!bestAtk) return `<span class="text-[9px] text-slate-600">数据缺失</span>`;
             
-            // 如果被推平了显示醒目的红色，否则显示橙色
             const starColor = bestAtk.stars === 3 ? 'text-red-500 font-black' : 'text-amber-500 font-bold';
             const destColor = bestAtk.stars === 3 ? 'text-red-400' : 'text-slate-300';
             
             return `
                 <div class="flex items-center justify-end gap-1.5">
-                    <span class="text-[9px] text-slate-500">被破</span>
+                    <span class="text-[8px] text-slate-600">被破</span>
                     <span class="${starColor} w-6">${bestAtk.stars}<i class="fa-solid fa-star text-[7px] ml-[1px]"></i></span>
                     <span class="text-[9px] ${destColor} w-6 text-right">${bestAtk.destructionPercentage}%</span>
-                    <span class="text-[8px] text-slate-600 ml-1 w-6 text-right">(${m.opponentAttacks}次)</span>
+                    <span class="text-[8px] text-slate-600 ml-0.5 w-6 text-right font-mono">(${m.opponentAttacks}次)</span>
                 </div>
             `;
         }
 
         function renderDashboard(data) {
-            // 生成对手位置字典，彻底消灭 undefined
             const oppMap = {};
             if (data.opponent && data.opponent.members) {
                 data.opponent.members.forEach(om => {
@@ -200,34 +221,38 @@
             document.getElementById('members-list').innerHTML = members.map(m => {
                 const used = m.attacks ? m.attacks.length : 0;
                 const missed = attacksPerMember - used;
-                let trClass = missed > 0 ? 'row-missed' : 'row-done hover:bg-slate-800';
+                let trClass = missed > 0 ? 'row-missed' : 'row-done hover:bg-slate-800/40';
                 
-                // 进攻列 (传入字典解析对手战位)
                 let atk1Html = renderAttackCell(m.attacks ? m.attacks[0] : null, oppMap);
                 let atk2Html = attacksPerMember === 2 ? `<td>${renderAttackCell(m.attacks ? m.attacks[1] : null, oppMap)}</td>` : '';
                 
-                if (!m.attacks || !m.attacks[0]) atk1Html = `<span class="text-red-400 text-[9px] font-bold border border-red-500/30 px-1 rounded bg-red-950/50">挂机中</span>`;
-                if (attacksPerMember === 2 && used === 1) atk2Html = `<td><span class="text-amber-400 text-[9px] font-bold border border-amber-500/30 px-1 rounded bg-amber-950/50">余 1 刀</span></td>`;
+                // 首领特批：将“挂机中”修改为“未进攻”
+                if (!m.attacks || !m.attacks[0]) atk1Html = `<span class="text-red-400 text-[9px] font-bold border border-red-500/30 px-1 rounded bg-red-950/50">未进攻</span>`;
+                if (attacksPerMember === 2 && used === 1) atk2Html = `<td><span class="text-amber-400/90 text-[9px] font-bold border border-amber-500/30 px-1 rounded bg-amber-950/40">余 1 刀</span></td>`;
 
-                // 防守列
                 let defenseHtml = renderDefenseCell(m);
 
                 return `
                 <tr class="${trClass} transition-colors">
-                    <td class="text-center font-mono text-slate-500 border-r border-slate-800/50">${m.mapPosition}</td>
+                    <td class="text-center font-mono text-slate-500 border-r border-slate-800/40">${m.mapPosition}</td>
                     <td class="font-bold text-slate-200">
                         <div class="flex items-center gap-1.5">
-                            <span class="text-[9px] text-slate-400 font-bold bg-slate-800 px-1 rounded border border-slate-700">${m.townhallLevel}本</span>
-                            <span class="truncate max-w-[80px] sm:max-w-[120px]">${m.name}</span>
+                            <span class="text-[9px] text-slate-400 font-bold bg-[#020617] px-1 rounded border border-slate-700/60 shadow-inner">${m.townhallLevel}本</span>
+                            <span class="truncate max-w-[80px] sm:max-w-[120px] drop-shadow-sm">${m.name}</span>
                         </div>
                     </td>
                     <td>${atk1Html}</td>
                     ${atk2Html}
-                    <td class="text-right border-l border-slate-800/50 pr-2 pl-1">${defenseHtml}</td>
+                    <td class="text-right border-l border-slate-800/40 pr-2 pl-1">${defenseHtml}</td>
                 </tr>
                 `;
             }).join('');
         }
+
+        // 监听回车键进行搜索
+        document.getElementById('search-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') searchClan();
+        });
 
         window.onload = () => loadWarData('hq');
     </script>
