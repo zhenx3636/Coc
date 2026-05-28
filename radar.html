@@ -50,12 +50,15 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-2 w-full border-t border-slate-800/50 pt-2">
-                <button onclick="changeMode('war')" id="mode-war" class="mode-btn mode-active border rounded-lg py-1.5 text-xs font-bold flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-khanda"></i> 常规部落战
+            <div class="grid grid-cols-3 gap-1.5 w-full border-t border-slate-800/50 pt-2">
+                <button onclick="changeMode('war')" id="mode-war" class="mode-btn mode-active border rounded-lg py-1.5 text-[11px] font-bold flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-khanda"></i> 常规战
                 </button>
-                <button onclick="changeMode('cwl')" id="mode-cwl" class="mode-btn mode-inactive border rounded-lg py-1.5 text-xs font-bold flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-trophy"></i> CWL 联赛
+                <button onclick="changeMode('cwl')" id="mode-cwl" class="mode-btn mode-inactive border rounded-lg py-1.5 text-[11px] font-bold flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-trophy"></i> CWL联赛
+                </button>
+                <button onclick="changeMode('capital')" id="mode-capital" class="mode-btn mode-inactive border rounded-lg py-1.5 text-[11px] font-bold flex items-center justify-center gap-1.5">
+                    <i class="fa-brands fa-fort-awesome"></i> 都城突袭
                 </button>
             </div>
         </div>
@@ -106,18 +109,65 @@
                                 <th class="text-right text-emerald-400/80 border-l border-slate-800/80 pl-2">防守状态</th>
                             </tr>
                         </thead>
-                        <tbody id="members-list" class="divide-y divide-slate-800/40"></tbody>
+                        <tbody id="war-members-list" class="divide-y divide-slate-800/40"></tbody>
                     </table>
                 </div>
             </div>
         </div>
+
+        <div id="capital-dashboard" class="hidden space-y-3">
+            <div class="glass-panel border border-slate-700/60 rounded-xl p-4 shadow-xl flex justify-between items-center relative overflow-hidden">
+                <i class="fa-brands fa-fort-awesome absolute right-[-20px] top-[-20px] text-[120px] text-amber-500 opacity-[0.03] z-0 pointer-events-none"></i>
+                <div class="w-full relative z-10 flex justify-between items-center">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <h2 id="cap-clan-name" class="text-lg md:text-xl font-black text-amber-500 truncate">载入中</h2>
+                            <span id="cap-raid-status" class="text-[9px] px-1.5 py-0.5 rounded border"></span>
+                        </div>
+                        <p class="text-[10px] text-slate-400">本期已获总都城币</p>
+                        <div class="flex items-baseline gap-1 mt-1">
+                            <span class="text-3xl font-black text-amber-400 drop-shadow-md" id="cap-total-loot">0</span>
+                            <i class="fa-solid fa-coins text-amber-500 text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] text-slate-400 mb-1">参与人数 / 总攻击数</p>
+                        <div class="bg-[#020617] border border-slate-700/80 px-4 py-1.5 rounded-lg shadow-inner inline-block">
+                            <span class="font-black text-lg text-cyan-400" id="cap-total-members">0</span><span class="text-[10px] text-slate-500 mx-1">人</span>
+                            <span class="text-slate-600">|</span>
+                            <span class="font-black text-lg text-emerald-400 ml-1" id="cap-total-attacks">0</span><span class="text-[10px] text-slate-500 ml-1">刀</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel border border-slate-700/60 rounded-xl shadow-xl overflow-hidden">
+                <div class="bg-slate-900/50 border-b border-slate-700/60 px-3 py-3 flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-300 tracking-wider"><i class="fa-solid fa-list-ol text-amber-500"></i> 都城出刀明细榜</span>
+                    <span class="text-[9px] text-red-400 bg-red-950/30 px-2 py-0.5 rounded border border-red-900/50"><i class="fa-solid fa-circle-exclamation"></i> 漏刀公开处刑</span>
+                </div>
+                <div class="overflow-x-auto no-scrollbar">
+                    <table class="w-full text-left dense-table">
+                        <thead class="bg-slate-950/80 text-slate-400 border-b border-slate-800/80">
+                            <tr>
+                                <th class="text-center w-8">排行</th>
+                                <th>突袭成员</th>
+                                <th class="text-center">出刀状态</th>
+                                <th class="text-right pr-4 text-amber-400">掠夺都城币</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cap-members-list" class="divide-y divide-slate-800/40"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        // 全局状态管理
-        let currentClan = 'hq'; // hq, br, custom
+        let currentClan = 'hq'; 
         let customTag = '';
-        let currentMode = 'war'; // war, cwl
+        let currentMode = 'war'; // war, cwl, capital
 
         function parseCocTime(cocTime) {
             if (!cocTime) return new Date();
@@ -126,7 +176,6 @@
             return new Date(`${year}-${month}-${day}T${hour}:${min}:${sec}Z`);
         }
 
-        // 切换部落
         function changeClan(target) {
             const btnHq = document.getElementById('btn-hq');
             const btnBr = document.getElementById('btn-br');
@@ -147,23 +196,36 @@
             triggerRadar();
         }
 
-        // 切换模式 (常规 vs 联赛)
+        // 切换三大模式
         function changeMode(mode) {
             currentMode = mode;
-            document.getElementById('mode-war').className = mode === 'war' ? 'mode-btn mode-active border rounded-lg py-1.5 text-xs font-bold flex items-center justify-center gap-2' : 'mode-btn mode-inactive border rounded-lg py-1.5 text-xs font-bold flex items-center justify-center gap-2';
-            document.getElementById('mode-cwl').className = mode === 'cwl' ? 'mode-btn mode-active border rounded-lg py-1.5 text-xs font-bold flex items-center justify-center gap-2' : 'mode-btn mode-inactive border rounded-lg py-1.5 text-xs font-bold flex items-center justify-center gap-2';
+            ['war', 'cwl', 'capital'].forEach(m => {
+                const btn = document.getElementById('mode-' + m);
+                if (m === mode) {
+                    btn.className = 'mode-btn mode-active border rounded-lg py-1.5 text-[11px] font-bold flex items-center justify-center gap-1.5';
+                } else {
+                    btn.className = 'mode-btn mode-inactive border rounded-lg py-1.5 text-[11px] font-bold flex items-center justify-center gap-1.5';
+                }
+            });
             
-            document.getElementById('table-title').innerHTML = mode === 'cwl' ? '<i class="fa-solid fa-trophy text-amber-500"></i> CWL 联赛明细日志 (单次攻击)' : '<i class="fa-solid fa-table-cells text-cyan-500"></i> 作战明细日志';
+            if (mode === 'cwl') document.getElementById('table-title').innerHTML = '<i class="fa-solid fa-trophy text-amber-500"></i> CWL 联赛明细日志';
+            else if (mode === 'war') document.getElementById('table-title').innerHTML = '<i class="fa-solid fa-table-cells text-cyan-500"></i> 作战明细日志';
+            
             triggerRadar();
         }
 
-        // 核心发射功能
         async function triggerRadar() {
+            // 隐藏所有面板，展示Loading
             document.getElementById('loading-box').classList.remove('hidden');
             document.getElementById('war-dashboard').classList.add('hidden');
+            document.getElementById('capital-dashboard').classList.add('hidden');
             document.getElementById('error-box').classList.add('hidden');
 
-            const endpoint = currentMode === 'war' ? '/api/war' : '/api/cwl';
+            let endpoint = '';
+            if (currentMode === 'war') endpoint = '/api/war';
+            else if (currentMode === 'cwl') endpoint = '/api/cwl';
+            else if (currentMode === 'capital') endpoint = '/api/capital';
+
             const tagParam = currentClan === 'custom' ? customTag : currentClan;
 
             try {
@@ -172,16 +234,19 @@
 
                 if (data.reason === 'accessDenied') throw new Error("⚠️ 官方拦截：该部落未公开【部落战日志】！<br><span class='text-[10px] text-slate-400 font-normal'>只有公开了日志的部落才能被侦察。</span>");
                 if (data.reason === 'notFound') throw new Error("❌ 找不到该部落，请检查标签 # 是否输入正确。");
-                if (data.state === 'notInWar' || data.error) {
-                    const msg = data.error || "💤 目标当前不在战争期，或正在匹配中。";
-                    throw new Error(msg);
-                }
-                if (!data.clan || !data.clan.name) throw new Error("获取数据异常，可能是官方API波动。");
+                if (data.state === 'notInWar' || data.state === 'notInRaid' || data.error) throw new Error(data.error || "💤 当前无战事或匹配中。");
+                if (!data.clan && currentMode !== 'capital') throw new Error("获取数据异常。");
 
-                renderDashboard(data);
+                // 分流渲染
+                if (currentMode === 'capital') {
+                    renderCapitalDashboard(data, currentClan);
+                    document.getElementById('capital-dashboard').classList.remove('hidden');
+                } else {
+                    renderWarDashboard(data);
+                    document.getElementById('war-dashboard').classList.remove('hidden');
+                }
                 
                 document.getElementById('loading-box').classList.add('hidden');
-                document.getElementById('war-dashboard').classList.remove('hidden');
             } catch (err) {
                 document.getElementById('loading-box').classList.add('hidden');
                 document.getElementById('error-box').classList.remove('hidden');
@@ -189,53 +254,16 @@
             }
         }
 
-        function renderAttackCell(atk, oppMap) {
-            if (!atk) return `<span class="text-slate-700/50 font-mono">-</span>`;
-            const starColor = atk.stars === 3 ? 'text-amber-400 font-black' : (atk.stars > 0 ? 'text-slate-200 font-bold' : 'text-slate-500');
-            const oppPos = oppMap[atk.defenderTag] || "?"; 
-            
-            return `
-                <div class="flex items-center gap-1.5">
-                    <span class="w-6 ${starColor}">${atk.stars}<i class="fa-solid fa-star text-[7px] ml-[1px]"></i></span>
-                    <span class="w-7 text-[9px] ${atk.destructionPercentage === 100 ? 'text-amber-500/80' : 'text-slate-400'}">${atk.destructionPercentage}%</span>
-                    <span class="text-[8px] text-slate-500">打</span>
-                    <span class="bg-[#020617] text-cyan-400/90 font-mono text-[9px] px-1 rounded border border-slate-700/80 shadow-inner">#${oppPos}</span>
-                </div>
-            `;
-        }
-
-        function renderDefenseCell(m) {
-            if (!m.opponentAttacks || m.opponentAttacks === 0) {
-                return `<span class="text-[9px] text-emerald-500/80 bg-emerald-950/20 px-1.5 py-0.5 rounded border border-emerald-900/50">未被攻击</span>`;
-            }
-            const bestAtk = m.bestOpponentAttack;
-            if (!bestAtk) return `<span class="text-[9px] text-slate-600">数据缺失</span>`;
-            
-            const starColor = bestAtk.stars === 3 ? 'text-red-500 font-black' : 'text-amber-500 font-bold';
-            const destColor = bestAtk.stars === 3 ? 'text-red-400' : 'text-slate-300';
-            
-            return `
-                <div class="flex items-center justify-end gap-1.5">
-                    <span class="text-[8px] text-slate-600">被破</span>
-                    <span class="${starColor} w-6">${bestAtk.stars}<i class="fa-solid fa-star text-[7px] ml-[1px]"></i></span>
-                    <span class="text-[9px] ${destColor} w-6 text-right">${bestAtk.destructionPercentage}%</span>
-                    <span class="text-[8px] text-slate-600 ml-0.5 w-6 text-right font-mono">(${m.opponentAttacks}次)</span>
-                </div>
-            `;
-        }
-
-        function renderDashboard(data) {
+        /* ============== 渲染：常规/联赛大屏 ============== */
+        function renderWarDashboard(data) {
             const oppMap = {};
             if (data.opponent && data.opponent.members) {
-                data.opponent.members.forEach(om => {
-                    oppMap[om.tag] = om.mapPosition;
-                });
+                data.opponent.members.forEach(om => oppMap[om.tag] = om.mapPosition);
             }
 
             document.getElementById('my-clan-name').innerText = data.clan.name;
             document.getElementById('my-stars').innerText = data.clan.stars || 0;
             document.getElementById('my-dest').innerText = (data.clan.destructionPercentage || 0).toFixed(1) + '%';
-            
             document.getElementById('opp-clan-name').innerText = data.opponent.name || "匹配中...";
             document.getElementById('opp-stars').innerText = data.opponent.stars || 0;
             document.getElementById('opp-dest').innerText = (data.opponent.destructionPercentage || 0).toFixed(1) + '%';
@@ -246,8 +274,7 @@
             document.getElementById('war-status-time').innerText = `${stateText}`;
 
             const attacksPerMember = data.attacksPerMember || 2; 
-            const totalAttacksPossible = data.teamSize * attacksPerMember;
-            document.getElementById('attacks-left').innerText = totalAttacksPossible - (data.clan.attacks || 0);
+            document.getElementById('attacks-left').innerText = (data.teamSize * attacksPerMember) - (data.clan.attacks || 0);
 
             if (attacksPerMember === 2) document.getElementById('th-atk-2').classList.remove('hidden');
             else document.getElementById('th-atk-2').classList.add('hidden');
@@ -260,7 +287,7 @@
                 return a.mapPosition - b.mapPosition; 
             });
 
-            document.getElementById('members-list').innerHTML = members.map(m => {
+            document.getElementById('war-members-list').innerHTML = members.map(m => {
                 const used = m.attacks ? m.attacks.length : 0;
                 const missed = attacksPerMember - used;
                 let trClass = missed > 0 ? 'row-missed' : 'row-done hover:bg-slate-800/40';
@@ -285,8 +312,90 @@
                     <td>${atk1Html}</td>
                     ${atk2Html}
                     <td class="text-right border-l border-slate-800/40 pr-2 pl-1">${defenseHtml}</td>
-                </tr>
-                `;
+                </tr>`;
+            }).join('');
+        }
+
+        function renderAttackCell(atk, oppMap) {
+            if (!atk) return `<span class="text-slate-700/50 font-mono">-</span>`;
+            const starColor = atk.stars === 3 ? 'text-amber-400 font-black' : (atk.stars > 0 ? 'text-slate-200 font-bold' : 'text-slate-500');
+            const oppPos = oppMap[atk.defenderTag] || "?"; 
+            return `
+                <div class="flex items-center gap-1.5">
+                    <span class="w-6 ${starColor}">${atk.stars}<i class="fa-solid fa-star text-[7px] ml-[1px]"></i></span>
+                    <span class="w-7 text-[9px] ${atk.destructionPercentage === 100 ? 'text-amber-500/80' : 'text-slate-400'}">${atk.destructionPercentage}%</span>
+                    <span class="text-[8px] text-slate-500">打</span>
+                    <span class="bg-[#020617] text-cyan-400/90 font-mono text-[9px] px-1 rounded border border-slate-700/80 shadow-inner">#${oppPos}</span>
+                </div>`;
+        }
+
+        function renderDefenseCell(m) {
+            if (!m.opponentAttacks || m.opponentAttacks === 0) return `<span class="text-[9px] text-emerald-500/80 bg-emerald-950/20 px-1.5 py-0.5 rounded border border-emerald-900/50">未被攻击</span>`;
+            const bestAtk = m.bestOpponentAttack;
+            if (!bestAtk) return `<span class="text-[9px] text-slate-600">数据缺失</span>`;
+            const starColor = bestAtk.stars === 3 ? 'text-red-500 font-black' : 'text-amber-500 font-bold';
+            const destColor = bestAtk.stars === 3 ? 'text-red-400' : 'text-slate-300';
+            return `
+                <div class="flex items-center justify-end gap-1.5">
+                    <span class="text-[8px] text-slate-600">被破</span>
+                    <span class="${starColor} w-6">${bestAtk.stars}<i class="fa-solid fa-star text-[7px] ml-[1px]"></i></span>
+                    <span class="text-[9px] ${destColor} w-6 text-right">${bestAtk.destructionPercentage}%</span>
+                    <span class="text-[8px] text-slate-600 ml-0.5 w-6 text-right font-mono">(${m.opponentAttacks}次)</span>
+                </div>`;
+        }
+
+        /* ============== 渲染：都城突袭大屏 ============== */
+        function renderCapitalDashboard(data, clanPrefix) {
+            const clanNameText = (clanPrefix === 'hq') ? '烟雨楼' : ((clanPrefix === 'br') ? '星辰璀璨' : '目标部落');
+            document.getElementById('cap-clan-name').innerText = clanNameText;
+            document.getElementById('cap-total-loot').innerText = data.capitalTotalLoot ? data.capitalTotalLoot.toLocaleString() : 0;
+            
+            const statusEl = document.getElementById('cap-raid-status');
+            if (data.state === 'ongoing') {
+                statusEl.innerText = "突袭进行中";
+                statusEl.className = "text-[9px] px-1.5 py-0.5 rounded border bg-emerald-950/50 border-emerald-500/50 text-emerald-400 animate-pulse";
+            } else {
+                statusEl.innerText = "本期已结束";
+                statusEl.className = "text-[9px] px-1.5 py-0.5 rounded border bg-slate-800 border-slate-600 text-slate-400";
+            }
+
+            let members = data.members || [];
+            let totalAttacks = 0;
+            members.forEach(m => totalAttacks += m.attacks);
+            document.getElementById('cap-total-members').innerText = members.length;
+            document.getElementById('cap-total-attacks').innerText = totalAttacks;
+
+            members.sort((a, b) => {
+                const aMax = a.attackLimit + a.bonusAttackLimit;
+                const bMax = b.attackLimit + b.bonusAttackLimit;
+                const aMissed = aMax - a.attacks;
+                const bMissed = bMax - b.attacks;
+                if (aMissed > 0 || bMissed > 0) { if (aMissed !== bMissed) return bMissed - aMissed; }
+                return b.capitalResourcesLooted - a.capitalResourcesLooted;
+            });
+
+            document.getElementById('cap-members-list').innerHTML = members.map((m, idx) => {
+                const maxAttacks = m.attackLimit + m.bonusAttackLimit;
+                const missed = maxAttacks - m.attacks;
+                let trClass = missed > 0 ? 'row-missed' : 'row-done hover:bg-slate-800/40';
+                
+                let statusHtml = '';
+                if (m.attacks === 0) statusHtml = `<span class="text-red-400 text-[10px] font-bold bg-red-950/50 border border-red-500/30 px-1.5 py-0.5 rounded">未出刀 (余 ${maxAttacks})</span>`;
+                else if (missed > 0) statusHtml = `<span class="text-amber-400 text-[10px] font-bold bg-amber-950/50 border border-amber-500/30 px-1.5 py-0.5 rounded">缺 ${missed} 刀 (${m.attacks}/${maxAttacks})</span>`;
+                else statusHtml = `<span class="text-emerald-400 text-[10px] font-bold"><i class="fa-solid fa-check"></i> 满刀 (${m.attacks}/${maxAttacks})</span>`;
+
+                let rankHtml = `<span class="text-slate-500 font-mono">${idx + 1}</span>`;
+                if (idx === 0) rankHtml = `<i class="fa-solid fa-crown text-amber-400 drop-shadow-[0_0_5px_rgba(251,191,36,0.8)]"></i>`;
+                else if (idx === 1) rankHtml = `<i class="fa-solid fa-crown text-slate-300 drop-shadow-[0_0_5px_rgba(203,213,225,0.8)]"></i>`;
+                else if (idx === 2) rankHtml = `<i class="fa-solid fa-crown text-amber-700 drop-shadow-[0_0_5px_rgba(180,83,9,0.8)]"></i>`;
+
+                return `
+                <tr class="${trClass} transition-colors">
+                    <td class="text-center border-r border-slate-800/40">${rankHtml}</td>
+                    <td class="font-bold text-slate-200"><span class="truncate max-w-[120px] md:max-w-[200px] inline-block align-middle">${m.name}</span></td>
+                    <td class="text-center">${statusHtml}</td>
+                    <td class="text-right pr-4 font-mono font-bold text-amber-400">${m.capitalResourcesLooted.toLocaleString()}</td>
+                </tr>`;
             }).join('');
         }
 
