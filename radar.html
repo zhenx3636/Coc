@@ -6,12 +6,10 @@
     <meta name="theme-color" content="#020617">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
     <title>战争实况全景雷达</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* 🍎 修复4：把最底层的画布也涂黑，防止滑动时漏出白底 */
         html { background-color: #020617; }
         body { font-family: 'PingFang SC', sans-serif; }
         .hidden { display: none !important; }
@@ -20,25 +18,41 @@
         .row-missed { background-color: rgba(127, 29, 29, 0.15); }
         .row-done { background-color: rgba(15, 23, 42, 0.3); }
         .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        
+        /* 模式切换按钮动画 */
+        .mode-btn { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .mode-active { background: rgba(6, 182, 212, 0.15); border-color: rgba(6, 182, 212, 0.5); color: #22d3ee; }
+        .mode-inactive { background: transparent; border-color: rgba(51, 65, 85, 0.5); color: #64748b; }
     </style>
 </head>
 <body class="selection:bg-cyan-500/30 min-h-screen p-2 bg-gradient-to-br from-[#0f172a] via-[#090b14] to-[#020617] text-slate-200">
     <div class="max-w-6xl mx-auto space-y-3 pb-8 pt-safe">
         
-        <div class="glass-panel border border-slate-700/60 p-2 md:p-3 rounded-xl shadow-2xl flex flex-col md:flex-row justify-between items-center gap-3 mt-2">
-            <h1 class="text-sm md:text-lg font-black tracking-widest flex items-center gap-2 text-cyan-400 shrink-0">
-                <i class="fa-solid fa-satellite-dish animate-pulse"></i> 战争实况侦察
-            </h1>
+        <div class="glass-panel border border-slate-700/60 p-2 md:p-3 rounded-xl shadow-2xl flex flex-col gap-3 mt-2">
             
-            <div class="flex flex-wrap md:flex-nowrap items-center gap-2 w-full md:w-auto">
-                <div class="flex gap-1 bg-slate-900/80 p-1 rounded-md border border-slate-700/50 shrink-0">
-                    <button onclick="loadWarData('hq')" id="btn-hq" class="px-3 py-1.5 rounded text-[10px] font-bold bg-amber-600 text-white shadow-lg transition-colors">烟雨楼</button>
-                    <button onclick="loadWarData('br')" id="btn-br" class="px-3 py-1.5 rounded text-[10px] font-bold text-slate-400 hover:text-white transition-colors">星辰璀璨</button>
+            <div class="flex flex-col md:flex-row justify-between items-center gap-3 w-full">
+                <h1 class="text-sm md:text-lg font-black tracking-widest flex items-center gap-2 text-cyan-400 shrink-0">
+                    <i class="fa-solid fa-satellite-dish animate-pulse"></i> 战争雷达
+                </h1>
+                <div class="flex flex-wrap md:flex-nowrap items-center gap-2 w-full md:w-auto">
+                    <div class="flex gap-1 bg-slate-900/80 p-1 rounded-md border border-slate-700/50 shrink-0">
+                        <button onclick="changeClan('hq')" id="btn-hq" class="px-3 py-1.5 rounded text-[10px] font-bold bg-amber-600 text-white shadow-lg transition-colors">烟雨楼</button>
+                        <button onclick="changeClan('br')" id="btn-br" class="px-3 py-1.5 rounded text-[10px] font-bold text-slate-400 hover:text-white transition-colors">星辰璀璨</button>
+                    </div>
+                    <div class="flex flex-grow md:w-48 bg-slate-900/80 border border-slate-700/50 rounded-md overflow-hidden focus-within:border-cyan-500 transition-colors">
+                        <input type="text" id="search-input" placeholder="其它部落 # 标签" class="w-full bg-transparent px-2 py-1 text-xs text-white focus:outline-none uppercase font-mono">
+                        <button onclick="changeClan('custom')" class="px-3 py-1 bg-slate-800 hover:bg-cyan-700 text-slate-300 hover:text-white transition-colors"><i class="fa-solid fa-magnifying-glass text-[10px]"></i></button>
+                    </div>
                 </div>
-                <div class="flex flex-grow md:w-48 bg-slate-900/80 border border-slate-700/50 rounded-md overflow-hidden focus-within:border-cyan-500 transition-colors">
-                    <input type="text" id="search-input" placeholder="输入其它部落 # 标签" class="w-full bg-transparent px-2 py-1 text-xs text-white focus:outline-none uppercase font-mono">
-                    <button onclick="searchClan()" class="px-3 py-1 bg-slate-800 hover:bg-cyan-700 text-slate-300 hover:text-white transition-colors"><i class="fa-solid fa-magnifying-glass text-[10px]"></i></button>
-                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 w-full border-t border-slate-800/50 pt-2">
+                <button onclick="changeMode('war')" id="mode-war" class="mode-btn mode-active border rounded-lg py-1.5 text-xs font-bold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-khanda"></i> 常规部落战
+                </button>
+                <button onclick="changeMode('cwl')" id="mode-cwl" class="mode-btn mode-inactive border rounded-lg py-1.5 text-xs font-bold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-trophy"></i> CWL 联赛
+                </button>
             </div>
         </div>
 
@@ -46,7 +60,6 @@
         <div id="error-box" class="hidden text-center py-10 text-red-400 font-bold bg-red-950/20 rounded-xl border border-red-500/30 p-4"><p id="error-msg" class="text-xs"></p></div>
 
         <div id="war-dashboard" class="hidden space-y-3">
-            
             <div class="glass-panel border border-slate-700/60 rounded-xl p-3 shadow-xl flex justify-between items-center relative overflow-hidden">
                 <div class="absolute inset-0 opacity-[0.03] flex justify-center items-center font-black text-6xl italic z-0 pointer-events-none">VS</div>
                 <div class="w-[35%] text-left relative z-10">
@@ -75,10 +88,9 @@
 
             <div class="glass-panel border border-slate-700/60 rounded-xl shadow-xl overflow-hidden">
                 <div class="bg-slate-900/50 border-b border-slate-700/60 px-3 py-2 flex justify-between items-center">
-                    <span class="text-[10px] font-bold text-slate-300 tracking-wider"><i class="fa-solid fa-table-cells text-cyan-500"></i> 作战明细日志</span>
+                    <span class="text-[10px] font-bold text-slate-300 tracking-wider" id="table-title"><i class="fa-solid fa-table-cells text-cyan-500"></i> 作战明细日志</span>
                     <span class="text-[9px] text-red-400 bg-red-950/30 px-2 py-0.5 rounded border border-red-900/50"><i class="fa-solid fa-circle-exclamation"></i> 红色底纹为未打满成员</span>
                 </div>
-                
                 <div class="overflow-x-auto no-scrollbar">
                     <table class="w-full text-left dense-table">
                         <thead class="bg-slate-950/80 text-slate-400 border-b border-slate-800/80">
@@ -90,8 +102,7 @@
                                 <th class="text-right text-emerald-400/80 border-l border-slate-800/80 pl-2">防守状态</th>
                             </tr>
                         </thead>
-                        <tbody id="members-list" class="divide-y divide-slate-800/40">
-                            </tbody>
+                        <tbody id="members-list" class="divide-y divide-slate-800/40"></tbody>
                     </table>
                 </div>
             </div>
@@ -99,6 +110,11 @@
     </div>
 
     <script>
+        // 全局状态管理
+        let currentClan = 'hq'; // hq, br, custom
+        let customTag = '';
+        let currentMode = 'war'; // war, cwl
+
         function parseCocTime(cocTime) {
             if (!cocTime) return new Date();
             const year = cocTime.slice(0, 4), month = cocTime.slice(4, 6), day = cocTime.slice(6, 8);
@@ -106,37 +122,56 @@
             return new Date(`${year}-${month}-${day}T${hour}:${min}:${sec}Z`);
         }
 
-        function searchClan() {
-            let val = document.getElementById('search-input').value.trim();
-            if(!val) return;
-            val = val.replace('#', '').toUpperCase();
-            loadWarData(val, true);
-        }
-
-        async function loadWarData(clanPrefix, isCustomSearch = false) {
+        // 切换部落
+        function changeClan(target) {
             const btnHq = document.getElementById('btn-hq');
             const btnBr = document.getElementById('btn-br');
-            if (isCustomSearch) {
+            
+            if (target === 'custom') {
+                const val = document.getElementById('search-input').value.trim();
+                if(!val) return;
+                customTag = val.replace('#', '').toUpperCase();
+                currentClan = 'custom';
                 btnHq.className = 'px-3 py-1.5 rounded text-[10px] font-bold text-slate-400 hover:text-white transition-colors bg-transparent';
                 btnBr.className = 'px-3 py-1.5 rounded text-[10px] font-bold text-slate-400 hover:text-white transition-colors bg-transparent';
             } else {
+                currentClan = target;
                 document.getElementById('search-input').value = '';
-                btnHq.className = clanPrefix === 'hq' ? 'px-3 py-1.5 rounded text-[10px] font-bold bg-amber-600 text-white shadow-lg transition-colors' : 'px-3 py-1.5 rounded text-[10px] font-bold text-slate-400 hover:text-white transition-colors bg-transparent';
-                btnBr.className = clanPrefix === 'br' ? 'px-3 py-1.5 rounded text-[10px] font-bold bg-cyan-700 text-white shadow-lg transition-colors' : 'px-3 py-1.5 rounded text-[10px] font-bold text-slate-400 hover:text-white transition-colors bg-transparent';
+                btnHq.className = target === 'hq' ? 'px-3 py-1.5 rounded text-[10px] font-bold bg-amber-600 text-white shadow-lg transition-colors' : 'px-3 py-1.5 rounded text-[10px] font-bold text-slate-400 hover:text-white transition-colors bg-transparent';
+                btnBr.className = target === 'br' ? 'px-3 py-1.5 rounded text-[10px] font-bold bg-cyan-700 text-white shadow-lg transition-colors' : 'px-3 py-1.5 rounded text-[10px] font-bold text-slate-400 hover:text-white transition-colors bg-transparent';
             }
+            triggerRadar();
+        }
+
+        // 切换模式 (常规 vs 联赛)
+        function changeMode(mode) {
+            currentMode = mode;
+            document.getElementById('mode-war').className = mode === 'war' ? 'mode-btn mode-active border rounded-lg py-1.5 text-xs font-bold flex items-center justify-center gap-2' : 'mode-btn mode-inactive border rounded-lg py-1.5 text-xs font-bold flex items-center justify-center gap-2';
+            document.getElementById('mode-cwl').className = mode === 'cwl' ? 'mode-btn mode-active border rounded-lg py-1.5 text-xs font-bold flex items-center justify-center gap-2' : 'mode-btn mode-inactive border rounded-lg py-1.5 text-xs font-bold flex items-center justify-center gap-2';
             
+            document.getElementById('table-title').innerHTML = mode === 'cwl' ? '<i class="fa-solid fa-trophy text-amber-500"></i> CWL 联赛明细日志 (单次攻击)' : '<i class="fa-solid fa-table-cells text-cyan-500"></i> 作战明细日志';
+            triggerRadar();
+        }
+
+        // 核心发射功能
+        async function triggerRadar() {
             document.getElementById('loading-box').classList.remove('hidden');
             document.getElementById('war-dashboard').classList.add('hidden');
             document.getElementById('error-box').classList.add('hidden');
 
+            const endpoint = currentMode === 'war' ? '/api/war' : '/api/cwl';
+            const tagParam = currentClan === 'custom' ? customTag : currentClan;
+
             try {
-                const res = await fetch(`/api/war?tag=${clanPrefix}`);
+                const res = await fetch(`${endpoint}?tag=${tagParam}`);
                 const data = await res.json();
 
                 if (data.reason === 'accessDenied') throw new Error("⚠️ 官方拦截：该部落未公开【部落战日志】！<br><span class='text-[10px] text-slate-400 font-normal'>只有公开了日志的部落才能被侦察。</span>");
                 if (data.reason === 'notFound') throw new Error("❌ 找不到该部落，请检查标签 # 是否输入正确。");
-                if (data.state === 'notInWar') throw new Error("💤 该部落当前不在战争期，或正在匹配中。");
-                if (data.error) throw new Error(data.error);
+                if (data.state === 'notInWar' || data.error) {
+                    const msg = data.error || "💤 目标当前不在战争期，或正在匹配中。";
+                    throw new Error(msg);
+                }
                 if (!data.clan || !data.clan.name) throw new Error("获取数据异常，可能是官方API波动。");
 
                 renderDashboard(data);
@@ -252,10 +287,10 @@
         }
 
         document.getElementById('search-input').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') searchClan();
+            if (e.key === 'Enter') changeClan('custom');
         });
 
-        window.onload = () => loadWarData('hq');
+        window.onload = () => triggerRadar();
     </script>
 </body>
 </html>
