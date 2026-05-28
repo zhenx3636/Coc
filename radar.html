@@ -3,74 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>烟雨楼 & 星辰璀璨 | 实时战争雷达</title>
+    <title>烟雨楼 & 星辰璀璨 | 战争卫星雷达</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background-color: #020617; color: white; font-family: sans-serif; }
-        .radar-scan { background: radial-gradient(circle, rgba(6,182,212,0.15) 0%, rgba(2,6,23,1) 70%); }
+        body { background-color: #020617; color: white; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+        .radar-scan { background: radial-gradient(circle at 50% 30%, rgba(6,182,212,0.1) 0%, rgba(2,6,23,1) 70%); }
+        .hidden { display: none !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* 自定义赛博边框 */
+        .glowing-border { box-shadow: 0 0 10px rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3); }
+        .hq-theme { border-color: rgba(251, 191, 36, 0.3); }
+        .br-theme { border-color: rgba(6, 182, 212, 0.3); }
+        
+        /* 星星动画 */
+        .star-shine { animation: star-shine 1s ease-out; }
+        @keyframes star-shine { 0% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.5); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
-<body class="selection:bg-cyan-500/30 min-h-screen p-4 md:p-8 radar-scan">
-    <div class="max-w-5xl mx-auto space-y-6">
+<body class="selection:bg-cyan-500/30 min-h-screen p-3 md:p-6 radar-scan">
+    <div class="max-w-4xl mx-auto space-y-5">
         
-        <div class="flex flex-col md:flex-row justify-between items-center bg-slate-900 border border-slate-700 p-4 rounded-xl shadow-2xl gap-4">
-            <h1 class="text-2xl font-black tracking-wider flex items-center gap-3">
-                <i class="fa-solid fa-satellite-dish text-cyan-400 animate-pulse"></i> 战争实况雷达
+        <div class="flex flex-col sm:flex-row justify-between items-center bg-slate-900 border border-slate-700/50 p-3 rounded-xl shadow-2xl gap-3">
+            <h1 class="text-xl font-black tracking-widest flex items-center gap-2">
+                <i class="fa-solid fa-satellite-dish text-cyan-400 animate-pulse text-lg"></i> 战争实况
             </h1>
-            <div class="flex gap-2 bg-slate-800 p-1.5 rounded-lg border border-slate-700">
-                <button onclick="loadWarData('hq')" id="btn-hq" class="px-6 py-2 rounded font-bold transition-colors bg-amber-600 text-white shadow-lg">烟雨楼 (总部)</button>
-                <button onclick="loadWarData('br')" id="btn-br" class="px-6 py-2 rounded font-bold transition-colors text-slate-400 hover:text-white">星辰璀璨 (分部)</button>
+            <div class="flex gap-1.5 bg-slate-800 p-1 rounded-lg border border-slate-700 w-full sm:w-auto">
+                <button onclick="loadWarData('hq')" id="btn-hq" class="flex-1 sm:flex-none px-4 py-1.5 rounded text-xs font-bold transition-colors bg-amber-600 text-white shadow-lg">烟雨楼 (总部)</button>
+                <button onclick="loadWarData('br')" id="btn-br" class="flex-1 sm:flex-none px-4 py-1.5 rounded text-xs font-bold transition-colors text-slate-400 hover:text-white">星辰璀璨 (分部)</button>
             </div>
         </div>
 
-        <div id="loading-box" class="text-center py-20 text-cyan-400 font-bold"><i class="fa-solid fa-spinner animate-spin text-3xl mb-3"></i><p>正在同步 Supercell 官方卫星数据...</p></div>
-        
-        <div id="error-box" class="hidden text-center py-20 text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation text-4xl mb-3"></i><p id="error-msg" class="leading-relaxed"></p></div>
+        <div id="loading-box" class="text-center py-20 text-cyan-400 text-sm"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2.5"></i><p>正在同步卫星数据...</p></div>
+        <div id="error-box" class="hidden text-center py-20 text-red-500 font-bold bg-red-950/20 rounded-xl border border-red-500/30 p-6 glowing-border"><i class="fa-solid fa-triangle-exclamation text-3xl mb-3"></i><p id="error-msg" class="leading-relaxed text-sm"></p></div>
 
-        <div id="war-dashboard" class="hidden space-y-6">
-            <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-2xl relative overflow-hidden">
-                <div class="absolute inset-0 opacity-10 flex justify-center items-center font-black text-9xl italic">VS</div>
-                <div class="text-center mb-4 text-cyan-400 font-bold text-sm tracking-widest" id="war-status-time"></div>
-                <div class="flex justify-between items-center relative z-10">
-                    <div class="w-[40%] text-left">
-                        <h2 id="my-clan-name" class="text-2xl font-black text-amber-500">烟雨楼</h2>
-                        <div class="flex items-center gap-3 mt-2 text-xl font-bold">
-                            <span class="text-amber-400"><i class="fa-solid fa-star"></i> <span id="my-stars">0</span></span>
-                            <span class="text-slate-400 text-sm"><i class="fa-solid fa-fire text-orange-500"></i> <span id="my-dest">0.00%</span></span>
+        <div id="war-dashboard" class="hidden space-y-5">
+            
+            <div id="war-score-card" class="bg-slate-900 border glowing-border rounded-2xl p-4 shadow-2xl relative overflow-hidden transition-colors duration-500">
+                <div class="absolute inset-0 opacity-5 flex justify-center items-center font-black text-9xl italic z-0">VS</div>
+                
+                <div class="text-center mb-3 text-[10px] text-cyan-400 font-mono tracking-widest relative z-10" id="war-status-time"></div>
+                
+                <div class="flex justify-between items-center gap-2 relative z-10">
+                    <div class="w-[45%] text-left space-y-1">
+                        <div class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle text-[6px]" id="clan-source-dot"></i>
+                            <h2 id="my-clan-name" class="text-lg font-black truncate">烟雨楼</h2>
                         </div>
-                    </div>
-                    <div class="w-[20%] text-center flex flex-col items-center">
-                        <span class="text-xs text-slate-400 mb-1">剩余进攻机会</span>
-                        <div class="w-16 h-16 rounded-full border-4 border-slate-700 flex items-center justify-center text-xl font-black text-white" id="attacks-left">0</div>
-                    </div>
-                    <div class="w-[40%] text-right">
-                        <h2 id="opp-clan-name" class="text-2xl font-black text-red-500">正在匹配...</h2>
-                        <div class="flex justify-end items-center gap-3 mt-2 text-xl font-bold">
-                            <span class="text-slate-400 text-sm"><span id="opp-dest">0.00%</span> <i class="fa-solid fa-fire text-orange-500"></i></span>
-                            <span class="text-red-400"><span id="opp-stars">0</span> <i class="fa-solid fa-star"></i></span>
+                        <div class="flex items-end gap-2">
+                            <span class="text-3xl font-black text-white" id="my-stars">0</span>
+                            <span class="text-[10px] text-slate-400 pb-0.5"><i class="fa-solid fa-star text-amber-400 mr-0.5"></i>/ <span id="my-attacks-stat">0</span>刀</span>
                         </div>
+                        <p class="text-[10px] text-slate-400 truncate"><i class="fa-solid fa-fire text-red-500 mr-0.5"></i>摧毁率: <span id="my-dest">0%</span></p>
+                    </div>
+
+                    <div class="flex-grow-0 flex-shrink-0 flex flex-col items-center">
+                        <div class="text-[9px] text-slate-500 mb-0.5">剩余</div>
+                        <div class="font-black text-2xl text-cyan-400 tracking-tighter" id="attacks-left">0</div>
+                        <div class="text-[9px] text-slate-500 mt-0.5">刀机会</div>
+                    </div>
+
+                    <div class="w-[45%] text-right space-y-1">
+                        <div class="flex items-center gap-1.5 justify-end">
+                            <h2 id="opp-clan-name" class="text-lg font-black text-slate-300 truncate">匹配中...</h2>
+                        </div>
+                        <div class="flex justify-end items-end gap-2">
+                            <span class="text-[10px] text-slate-400 pb-0.5"><span id="opp-attacks-stat">0</span>刀 /<i class="fa-solid fa-star text-slate-500 ml-0.5"></i></span>
+                            <span class="text-3xl font-black text-white" id="opp-stars">0</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 truncate">摧毁率: <span id="opp-dest">0%</span> <i class="fa-solid fa-fire text-red-500 ml-0.5"></i></p>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 shadow-2xl">
-                <h3 class="text-lg font-bold text-white mb-4 border-b border-slate-700 pb-2"><i class="fa-solid fa-list-check text-cyan-400"></i> 成员出战明细（按排序规则：漏刀优先 -> 战位顺序）</h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm whitespace-nowrap">
-                        <thead>
-                            <tr class="text-slate-400 border-b border-slate-800">
-                                <th class="pb-2 pl-2">#</th>
-                                <th class="pb-2">成员名单</th>
-                                <th class="pb-2 text-center">状态</th>
-                                <th class="pb-2 text-center">战绩 (打出的星星)</th>
-                                <th class="pb-2 text-center">摧毁率贡献</th>
-                            </tr>
-                        </thead>
-                        <tbody id="members-list" class="divide-y divide-slate-800/50">
-                            </tbody>
-                    </table>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center px-1">
+                    <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-user-clock text-cyan-400"></i> 成员出战追踪</h3>
+                    <div class="text-[10px] text-slate-500 flex gap-2">
+                        <span>排序规则：</span>
+                        <span class="text-red-400"><i class="fa-solid fa-skull"></i> 漏刀优先</span>
+                        <span>-></span>
+                        <span><i class="fa-solid fa-sort-numeric-down"></i> 战位</span>
+                    </div>
                 </div>
+                
+                <div id="members-list-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    </div>
             </div>
         </div>
     </div>
@@ -83,10 +102,27 @@
             return new Date(`${year}-${month}-${day}T${hour}:${min}:${sec}Z`);
         }
 
+        function getStarIcons(count) {
+            let html = '';
+            for (let i = 0; i < 3; i++) {
+                if (i < count) html += `<i class="fa-solid fa-star text-amber-400 text-sm star-shine"></i>`;
+                else html += `<i class="fa-solid fa-star text-slate-600 text-sm"></i>`;
+            }
+            return html;
+        }
+
         async function loadWarData(clanPrefix) {
-            document.getElementById('btn-hq').className = clanPrefix === 'hq' ? 'px-6 py-2 rounded font-bold transition-colors bg-amber-600 text-white shadow-lg' : 'px-6 py-2 rounded font-bold transition-colors text-slate-400 hover:text-white';
-            document.getElementById('btn-br').className = clanPrefix === 'br' ? 'px-6 py-2 rounded font-bold transition-colors bg-cyan-700 text-white shadow-lg' : 'px-6 py-2 rounded font-bold transition-colors text-slate-400 hover:text-white';
+            const isHQ = clanPrefix === 'hq';
+            document.getElementById('btn-hq').className = isHQ ? 'flex-1 sm:flex-none px-4 py-1.5 rounded text-xs font-bold transition-colors bg-amber-600 text-white shadow-lg' : 'flex-1 sm:flex-none px-4 py-1.5 rounded text-xs font-bold transition-colors text-slate-400 hover:text-white';
+            document.getElementById('btn-br').className = !isHQ ? 'flex-1 sm:flex-none px-4 py-1.5 rounded text-xs font-bold transition-colors bg-cyan-700 text-white shadow-lg' : 'flex-1 sm:flex-none px-4 py-1.5 rounded text-xs font-bold transition-colors text-slate-400 hover:text-white';
             
+            const scoreCard = document.getElementById('war-score-card');
+            const sourceDot = document.getElementById('clan-source-dot');
+            const myClanName = document.getElementById('my-clan-name');
+            
+            if(isHQ){ scoreCard.classList.add('hq-theme'); scoreCard.classList.remove('br-theme'); sourceDot.className = "fa-solid fa-circle text-[6px] text-amber-400"; myClanName.className="text-lg font-black text-amber-500 truncate"; }
+            else{ scoreCard.classList.add('br-theme'); scoreCard.classList.remove('hq-theme'); sourceDot.className = "fa-solid fa-circle text-[6px] text-cyan-400"; myClanName.className="text-lg font-black text-cyan-400 truncate"; }
+
             document.getElementById('loading-box').classList.remove('hidden');
             document.getElementById('war-dashboard').classList.add('hidden');
             document.getElementById('error-box').classList.add('hidden');
@@ -95,17 +131,14 @@
                 const res = await fetch(`/api/war?tag=${clanPrefix}`);
                 const data = await res.json();
 
-                // 🚨 终极官方报错拦截器！再也不会出现恶心的红代码
                 if (data.reason === 'accessDenied') {
-                    throw new Error("⚠️ 官方数据拦截：部落战日志未公开！<br><span class='text-sm text-slate-400 mt-2 block'>请首领进入游戏内，把部落设置里的【部落战日志】改为【公开】。<br>（注：改完后需等待 5 到 10 分钟，Supercell 卫星才会刷新数据）</span>");
+                    throw new Error("⚠️ 卫星信号被官方拦截：部落战日志未公开！<br><span class='text-xs text-slate-400 mt-2 block'>请首领检查游戏内【部落设置 -> 部落战日志】是否已设为【公开】。</span>");
                 }
-                if (data.reason === 'notFound') throw new Error("找不到该部落，请检查标签是否正确。");
-                if (data.reason) throw new Error("API 拒绝访问: " + (data.message || data.reason));
-                if (data.state === 'notInWar') throw new Error("💤 当前部落不在战争期，或正在匹配中。");
+                if (data.state === 'notInWar') throw new Error("💤 战争卫星未侦测到目标：当前不在战争期或匹配中。");
                 if (data.error) throw new Error(data.error);
-                if (!data.clan || !data.clan.name) throw new Error("未能读取到双方阵容，可能正处于特殊联赛模式。");
+                if (!data.clan || !data.clan.name) throw new Error("卫星通讯故障：未能获取官方完整数据，请稍后再试。");
 
-                renderDashboard(data);
+                renderDashboard(data, clanPrefix);
                 
                 document.getElementById('loading-box').classList.add('hidden');
                 document.getElementById('war-dashboard').classList.remove('hidden');
@@ -117,67 +150,125 @@
             }
         }
 
-        function renderDashboard(data) {
+        function renderDashboard(data, clanPrefix) {
+            const attacksPerMember = data.attacksPerMember || 2; 
+            const sourceColor = clanPrefix === 'hq' ? 'text-amber-400' : 'text-cyan-400';
+            const sourceBg = clanPrefix === 'hq' ? 'bg-amber-600/10' : 'bg-cyan-600/10';
+
+            // 1. 概览
             document.getElementById('my-clan-name').innerText = data.clan.name;
             document.getElementById('my-stars').innerText = data.clan.stars || 0;
-            document.getElementById('my-dest').innerText = (data.clan.destructionPercentage || 0).toFixed(2) + '%';
+            document.getElementById('my-attacks-stat').innerText = data.clan.attacks || 0;
+            document.getElementById('my-dest').innerText = (data.clan.destructionPercentage || 0).toFixed(1) + '%';
             
-            document.getElementById('opp-clan-name').innerText = data.opponent.name || "正在匹配...";
+            document.getElementById('opp-clan-name').innerText = data.opponent.name || "匹配中...";
             document.getElementById('opp-stars').innerText = data.opponent.stars || 0;
-            document.getElementById('opp-dest').innerText = (data.opponent.destructionPercentage || 0).toFixed(2) + '%';
+            document.getElementById('opp-attacks-stat').innerText = data.opponent.attacks || 0;
+            document.getElementById('opp-dest').innerText = (data.opponent.destructionPercentage || 0).toFixed(1) + '%';
 
-            const stateText = data.state === 'preparation' ? '准备日' : (data.state === 'inWar' ? '战斗日 (进行中)' : '战争已结束');
+            // 倒计时
             const endTime = parseCocTime(data.endTime);
-            document.getElementById('war-status-time').innerHTML = `<i class="fa-solid fa-clock"></i> ${stateText} | 结束时间: ${endTime.toLocaleString()}`;
+            const now = new Date();
+            let stateText = '';
+            if(data.state === 'preparation'){
+                stateText = '准备日 | 距开战: ';
+                const diff = endTime - now;
+                stateText += diff > 0 ? (Math.floor(diff/1000/60/60) + 'h ' + Math.floor(diff/1000/60%60) + 'm') : '即将开战';
+            } else if(data.state === 'inWar'){
+                stateText = '战斗日 | 距结束: ';
+                const diff = endTime - now;
+                stateText += diff > 0 ? (Math.floor(diff/1000/60/60) + 'h ' + Math.floor(diff/1000/60%60) + 'm') : '即将结束';
+            } else { stateText = '战争已结束 | ' + endTime.toLocaleString(); }
+            document.getElementById('war-status-time').innerHTML = `<i class="fa-solid fa-satellite animate-pulse"></i> ${stateText}`;
 
-            const attacksPerMember = data.attacksPerMember || 2; 
+            // 剩余刀数
             const totalAttacksPossible = data.teamSize * attacksPerMember;
-            const attacksUsed = data.clan.attacks || 0;
-            const attacksLeft = totalAttacksPossible - attacksUsed;
+            const attacksLeft = totalAttacksPossible - (data.clan.attacks || 0);
             const leftEl = document.getElementById('attacks-left');
             leftEl.innerText = attacksLeft;
-            leftEl.className = `w-16 h-16 rounded-full border-4 flex items-center justify-center text-xl font-black text-white ${attacksLeft > 0 ? 'border-cyan-500 text-cyan-400' : 'border-slate-700 text-slate-500'}`;
+            leftEl.className = `font-black text-2xl tracking-tighter ${attacksLeft > 0 ? 'text-cyan-400 animate-pulse' : 'text-slate-600'}`;
 
-            const maxA = data.attacksPerMember || 2;
+            // 2. 渲染作战卡片 (最关键的排版)
             let members = data.clan.members || [];
             
+            // 排序：漏刀优先 -> 战位顺序
             members.sort((a, b) => {
                 const aUsed = a.attacks ? a.attacks.length : 0;
                 const bUsed = b.attacks ? b.attacks.length : 0;
-                const aMissed = maxA - aUsed;
-                const bMissed = maxA - bUsed;
+                const aMissed = attacksPerMember - aUsed;
+                const bMissed = attacksPerMember - bUsed;
                 if (aMissed !== bMissed) return bMissed - aMissed; 
                 return a.mapPosition - b.mapPosition; 
             });
 
-            document.getElementById('members-list').innerHTML = members.map(m => {
+            const listContainer = document.getElementById('members-list-container');
+            listContainer.innerHTML = members.map(m => {
                 const used = m.attacks ? m.attacks.length : 0;
-                const missed = maxA - used;
-                let statusBadge = '';
-                let trClass = 'hover:bg-slate-800/50 transition-colors';
+                const missed = attacksPerMember - used;
+                let statusInfo = '';
+                let cardClass = `bg-slate-900 border border-slate-700/50 rounded-xl p-3 shadow-xl transition-all hover:border-slate-500 group relative`;
                 
+                // 根据状态设置卡片背景色
                 if (missed === 0) {
-                    statusBadge = `<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 px-2 py-0.5 rounded text-xs"><i class="fa-solid fa-check"></i> 任务完成</span>`;
+                    statusInfo = `<i class="fa-solid fa-check text-emerald-400"></i> 打满`;
                 } else if (used > 0 && missed > 0) {
-                    statusBadge = `<span class="bg-amber-500/20 text-amber-400 border border-amber-500/50 px-2 py-0.5 rounded text-xs"><i class="fa-solid fa-hourglass-half"></i> 剩 ${missed} 刀</span>`;
+                    statusInfo = `<i class="fa-solid fa-hourglass-half text-amber-400"></i> 剩${missed}刀`;
+                    cardClass += ` border-amber-900/50`;
                 } else {
-                    statusBadge = `<span class="bg-red-500/20 text-red-400 border border-red-500/50 px-2 py-0.5 rounded text-xs font-bold animate-pulse"><i class="fa-solid fa-skull"></i> 尚未进攻 (剩 ${missed} 刀)</span>`;
-                    trClass = 'bg-red-950/20 hover:bg-red-900/30'; 
+                    statusInfo = `<span class="font-bold text-red-400animate-pulse"><i class="fa-solid fa-skull"></i> 剩${missed}刀</span>`;
+                    cardClass += ` border-red-900/80 bg-red-950/10`; // 未打的骷髅头置顶高亮
                 }
 
-                let stars = 0; let dest = 0;
+                // 计算该成员总贡献
+                let totalS = 0; let totalD = 0;
+                if (m.attacks) { m.attacks.forEach(atk => { totalS += atk.stars; totalD += atk.destructionPercentage; }); }
+
+                // 渲染具体每一刀的对位情况
+                let attackDetailsHtml = '';
                 if (m.attacks) {
-                    m.attacks.forEach(atk => { stars += atk.stars; dest += atk.destructionPercentage; });
+                    attackDetailsHtml = m.attacks.map((atk, idx) => `
+                    <div class="flex items-center gap-1.5 py-1 text-xs border-b border-slate-800 last:border-b-0">
+                        <span class="text-slate-500 font-mono text-[9px]">第${idx+1}刀</span>
+                        <div class="flex items-center gap-1.5 flex-grow">
+                            <span class="font-bold ${atk.stars === 3 ? 'text-amber-400' : 'text-slate-300'}">${atk.stars}星</span>
+                            <span class="text-[10px] text-slate-500">-></span>
+                            <span class="text-white font-mono text-[10px] bg-slate-800 px-1 rounded">#${atk.opponentMapPosition}</span>
+                            <span class="text-[10px] text-red-400">${atk.destructionPercentage}%摧毁</span>
+                        </div>
+                    </div>
+                    `).join('');
+                } else {
+                    attackDetailsHtml = `<div class="text-center text-slate-600 text-xs py-2 italic"><i class="fa-solid fa-bed"></i> 此指挥官还在午睡</div>`;
                 }
 
+                // 最终卡片 HTML
                 return `
-                <tr class="${trClass}">
-                    <td class="py-3 pl-2 font-mono text-slate-500 text-xs">${m.mapPosition}</td>
-                    <td class="py-3 font-bold text-slate-200">${m.name}</td>
-                    <td class="py-3 text-center">${statusBadge}</td>
-                    <td class="py-3 text-center text-amber-400 font-bold">${stars > 0 ? stars + ' <i class="fa-solid fa-star text-xs"></i>' : '-'}</td>
-                    <td class="py-3 text-center text-orange-400 font-bold">${dest > 0 ? dest + '%' : '-'}</td>
-                </tr>
+                <div class="${cardClass}">
+                    <div class="absolute -right-1 -top-1 font-black text-4xl italic text-black/10 select-none">${m.townhallLevel}</div>
+                    
+                    <div class="flex justify-between items-center border-b border-slate-700/50 pb-2 mb-2 relative z-10">
+                        <div class="flex items-center gap-2 truncate">
+                            <span class="font-mono text-slate-500 text-[9px] shrink-0">#${m.mapPosition}</span>
+                            <span class="font-black text-slate-100 truncate">${m.name}</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400 shrink-0 flex items-center gap-1.5 ${sourceBg} px-1.5 py-0.5 rounded ml-2">
+                            <i class="fa-solid fa-circle text-[6px] ${sourceColor}"></i>
+                            ${statusInfo}
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-950/50 rounded-lg p-2 border border-slate-800 space-y-1 relative z-10">
+                        ${attackDetailsHtml}
+                    </div>
+                    
+                    <div class="flex justify-between items-center mt-2.5 pt-2 border-t border-slate-700/50 text-[10px] relative z-10">
+                        <span class="text-slate-500">累计贡献卫星情报：</span>
+                        <div class="flex gap-2">
+                            <span class="font-bold text-amber-400">${totalS > 0 ? totalS + '<i class="fa-solid fa-star text-[8px] ml-0.5"></i>' : '-'}</span>
+                            <span class="font-bold text-red-400">${totalD > 0 ? totalD + '%' : '-'}</span>
+                        </div>
+                    </div>
+                </div>
                 `;
             }).join('');
         }
