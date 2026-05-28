@@ -11,8 +11,7 @@
         .radar-scan { background: radial-gradient(circle at 50% 0%, rgba(6,182,212,0.1) 0%, rgba(2,6,23,1) 80%); }
         .hidden { display: none !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        /* 极致紧凑的表格样式 */
-        .dense-table th, .dense-table td { padding: 4px 6px; font-size: 11px; white-space: nowrap; }
+        .dense-table th, .dense-table td { padding: 5px 6px; font-size: 11px; white-space: nowrap; }
         .row-missed { background-color: rgba(127, 29, 29, 0.2); }
         .row-done { background-color: rgba(15, 23, 42, 0.5); }
     </style>
@@ -63,8 +62,8 @@
 
             <div class="bg-slate-900 border border-slate-700 rounded-lg shadow-xl overflow-hidden">
                 <div class="bg-slate-800 border-b border-slate-700 px-2 py-1.5 flex justify-between items-center">
-                    <span class="text-[10px] font-bold text-slate-300"><i class="fa-solid fa-table-cells text-cyan-400"></i> 战地全景图</span>
-                    <span class="text-[9px] text-red-400 animate-pulse"><i class="fa-solid fa-skull"></i> 红色标记为未打满成员</span>
+                    <span class="text-[10px] font-bold text-slate-300"><i class="fa-solid fa-table-cells text-cyan-400"></i> 攻防全景图</span>
+                    <span class="text-[9px] text-red-400 animate-pulse"><i class="fa-solid fa-skull"></i> 红色底纹为未打满成员</span>
                 </div>
                 
                 <div class="overflow-x-auto no-scrollbar">
@@ -75,14 +74,13 @@
                                 <th>参战指挥官</th>
                                 <th id="th-atk-1">攻击 1</th>
                                 <th id="th-atk-2" class="hidden">攻击 2</th>
-                                <th class="text-right text-amber-500 border-l border-slate-800 pl-2">贡献</th>
+                                <th class="text-right text-emerald-400 border-l border-slate-800 pl-2">防守状态</th>
                             </tr>
                         </thead>
                         <tbody id="members-list" class="divide-y divide-slate-800/60">
                             </tbody>
                     </table>
                 </div>
-                <div class="text-[9px] text-center text-slate-600 py-1 bg-slate-950 border-t border-slate-800">💡 提示：手机横屏观看效果达到巅峰</div>
             </div>
         </div>
     </div>
@@ -123,22 +121,54 @@
             }
         }
 
-        // 渲染单次攻击的微缩 HTML
-        function renderAttackCell(atk) {
+        // 渲染进攻 (加入防 undefined 的对手战位解析)
+        function renderAttackCell(atk, oppMap) {
             if (!atk) return `<span class="text-slate-700 font-mono">-</span>`;
             const starColor = atk.stars === 3 ? 'text-amber-400 font-black' : (atk.stars > 0 ? 'text-slate-200 font-bold' : 'text-slate-500');
+            // 解决 undefined 问题：通过防守者的 Tag 去查他的号数
+            const oppPos = oppMap[atk.defenderTag] || "?"; 
+            
             return `
                 <div class="flex items-center gap-1.5">
-                    <span class="w-8 ${starColor}">${atk.stars}<i class="fa-solid fa-star text-[8px] ml-0.5"></i></span>
-                    <span class="w-8 text-[9px] ${atk.destructionPercentage === 100 ? 'text-amber-500/80' : 'text-red-400/80'}">${atk.destructionPercentage}%</span>
+                    <span class="w-6 ${starColor}">${atk.stars}<i class="fa-solid fa-star text-[7px] ml-[1px]"></i></span>
+                    <span class="w-7 text-[9px] ${atk.destructionPercentage === 100 ? 'text-amber-500/80' : 'text-slate-400'}">${atk.destructionPercentage}%</span>
                     <span class="text-[9px] text-slate-500">打</span>
-                    <span class="bg-slate-800 text-cyan-400 font-mono text-[9px] px-1 rounded shadow-inner border border-slate-700">#${atk.opponentMapPosition}</span>
+                    <span class="bg-slate-800 text-cyan-400 font-mono text-[9px] px-1 rounded border border-slate-700">#${oppPos}</span>
+                </div>
+            `;
+        }
+
+        // 渲染防守状态
+        function renderDefenseCell(m) {
+            if (!m.opponentAttacks || m.opponentAttacks === 0) {
+                return `<span class="text-[9px] text-emerald-500/80 bg-emerald-950/30 px-1.5 py-0.5 rounded border border-emerald-900">未被攻击</span>`;
+            }
+            const bestAtk = m.bestOpponentAttack;
+            if (!bestAtk) return `<span class="text-[9px] text-slate-500">数据缺失</span>`;
+            
+            // 如果被推平了显示醒目的红色，否则显示橙色
+            const starColor = bestAtk.stars === 3 ? 'text-red-500 font-black' : 'text-amber-500 font-bold';
+            const destColor = bestAtk.stars === 3 ? 'text-red-400' : 'text-slate-300';
+            
+            return `
+                <div class="flex items-center justify-end gap-1.5">
+                    <span class="text-[9px] text-slate-500">被破</span>
+                    <span class="${starColor} w-6">${bestAtk.stars}<i class="fa-solid fa-star text-[7px] ml-[1px]"></i></span>
+                    <span class="text-[9px] ${destColor} w-6 text-right">${bestAtk.destructionPercentage}%</span>
+                    <span class="text-[8px] text-slate-600 ml-1 w-6 text-right">(${m.opponentAttacks}次)</span>
                 </div>
             `;
         }
 
         function renderDashboard(data) {
-            // 概览
+            // 生成对手位置字典，彻底消灭 undefined
+            const oppMap = {};
+            if (data.opponent && data.opponent.members) {
+                data.opponent.members.forEach(om => {
+                    oppMap[om.tag] = om.mapPosition;
+                });
+            }
+
             document.getElementById('my-clan-name').innerText = data.clan.name;
             document.getElementById('my-stars').innerText = data.clan.stars || 0;
             document.getElementById('my-dest').innerText = (data.clan.destructionPercentage || 0).toFixed(1) + '%';
@@ -147,25 +177,18 @@
             document.getElementById('opp-stars').innerText = data.opponent.stars || 0;
             document.getElementById('opp-dest').innerText = (data.opponent.destructionPercentage || 0).toFixed(1) + '%';
 
-            // 时间
             const endTime = parseCocTime(data.endTime);
             const now = new Date();
             let stateText = data.state === 'preparation' ? '准备日' : (data.state === 'inWar' ? '战斗日' : '已结束');
             document.getElementById('war-status-time').innerText = `${stateText}`;
 
-            // 剩余刀数判定 (处理联赛1刀 vs 普通战2刀)
             const attacksPerMember = data.attacksPerMember || 2; 
             const totalAttacksPossible = data.teamSize * attacksPerMember;
             document.getElementById('attacks-left').innerText = totalAttacksPossible - (data.clan.attacks || 0);
 
-            // 动态显示攻击列
-            if (attacksPerMember === 2) {
-                document.getElementById('th-atk-2').classList.remove('hidden');
-            } else {
-                document.getElementById('th-atk-2').classList.add('hidden');
-            }
+            if (attacksPerMember === 2) document.getElementById('th-atk-2').classList.remove('hidden');
+            else document.getElementById('th-atk-2').classList.add('hidden');
 
-            // 成员数据排序：漏刀的强制顶在最上面，然后按战位排
             let members = data.clan.members || [];
             members.sort((a, b) => {
                 const aMissed = attacksPerMember - (a.attacks ? a.attacks.length : 0);
@@ -174,39 +197,33 @@
                 return a.mapPosition - b.mapPosition; 
             });
 
-            // 渲染高密度行
             document.getElementById('members-list').innerHTML = members.map(m => {
                 const used = m.attacks ? m.attacks.length : 0;
                 const missed = attacksPerMember - used;
                 let trClass = missed > 0 ? 'row-missed' : 'row-done hover:bg-slate-800';
                 
-                let totalS = 0; let totalD = 0;
-                if (m.attacks) m.attacks.forEach(atk => { totalS += atk.stars; totalD += atk.destructionPercentage; });
-
-                let atk1Html = renderAttackCell(m.attacks ? m.attacks[0] : null);
-                let atk2Html = attacksPerMember === 2 ? `<td>${renderAttackCell(m.attacks ? m.attacks[1] : null)}</td>` : '';
+                // 进攻列 (传入字典解析对手战位)
+                let atk1Html = renderAttackCell(m.attacks ? m.attacks[0] : null, oppMap);
+                let atk2Html = attacksPerMember === 2 ? `<td>${renderAttackCell(m.attacks ? m.attacks[1] : null, oppMap)}</td>` : '';
                 
-                // 如果漏刀，显示红色待命警告
-                if (!m.attacks || !m.attacks[0]) atk1Html = `<span class="text-red-400/80 text-[9px] font-bold border border-red-500/30 px-1 rounded bg-red-950/50">挂机中</span>`;
-                if (attacksPerMember === 2 && used === 1) atk2Html = `<td><span class="text-amber-400/80 text-[9px] font-bold border border-amber-500/30 px-1 rounded bg-amber-950/50">余 1 刀</span></td>`;
+                if (!m.attacks || !m.attacks[0]) atk1Html = `<span class="text-red-400 text-[9px] font-bold border border-red-500/30 px-1 rounded bg-red-950/50">挂机中</span>`;
+                if (attacksPerMember === 2 && used === 1) atk2Html = `<td><span class="text-amber-400 text-[9px] font-bold border border-amber-500/30 px-1 rounded bg-amber-950/50">余 1 刀</span></td>`;
+
+                // 防守列
+                let defenseHtml = renderDefenseCell(m);
 
                 return `
                 <tr class="${trClass} transition-colors">
                     <td class="text-center font-mono text-slate-500 border-r border-slate-800/50">${m.mapPosition}</td>
                     <td class="font-bold text-slate-200">
-                        <div class="flex items-center gap-1">
-                            <span class="text-[8px] text-slate-600 italic">Lv.${m.townhallLevel}</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[9px] text-slate-400 font-bold bg-slate-800 px-1 rounded border border-slate-700">${m.townhallLevel}本</span>
                             <span class="truncate max-w-[80px] sm:max-w-[120px]">${m.name}</span>
                         </div>
                     </td>
                     <td>${atk1Html}</td>
                     ${atk2Html}
-                    <td class="text-right border-l border-slate-800/50 pl-2">
-                        <div class="flex justify-end gap-1.5 items-center">
-                            <span class="text-amber-400 font-bold">${totalS > 0 ? totalS : '-'}<i class="fa-solid fa-star text-[7px] ml-0.5"></i></span>
-                            <span class="text-red-400 text-[10px] w-8 text-right">${totalD > 0 ? totalD+'%' : '-'}</span>
-                        </div>
-                    </td>
+                    <td class="text-right border-l border-slate-800/50 pr-2 pl-1">${defenseHtml}</td>
                 </tr>
                 `;
             }).join('');
