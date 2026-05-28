@@ -2,25 +2,30 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#020617">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <title>战争实况全景雷达</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* 🍎 修复4：把最底层的画布也涂黑，防止滑动时漏出白底 */
+        html { background-color: #020617; }
         body { font-family: 'PingFang SC', sans-serif; }
         .hidden { display: none !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .dense-table th, .dense-table td { padding: 5px 6px; font-size: 11px; white-space: nowrap; }
         .row-missed { background-color: rgba(127, 29, 29, 0.15); }
         .row-done { background-color: rgba(15, 23, 42, 0.3); }
-        /* 磨砂玻璃质感面板 */
         .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
     </style>
 </head>
 <body class="selection:bg-cyan-500/30 min-h-screen p-2 bg-gradient-to-br from-[#0f172a] via-[#090b14] to-[#020617] text-slate-200">
-    <div class="max-w-6xl mx-auto space-y-3">
+    <div class="max-w-6xl mx-auto space-y-3 pb-8 pt-safe">
         
-        <div class="glass-panel border border-slate-700/60 p-2 md:p-3 rounded-xl shadow-2xl flex flex-col md:flex-row justify-between items-center gap-3">
+        <div class="glass-panel border border-slate-700/60 p-2 md:p-3 rounded-xl shadow-2xl flex flex-col md:flex-row justify-between items-center gap-3 mt-2">
             <h1 class="text-sm md:text-lg font-black tracking-widest flex items-center gap-2 text-cyan-400 shrink-0">
                 <i class="fa-solid fa-satellite-dish animate-pulse"></i> 战争实况侦察
             </h1>
@@ -101,7 +106,6 @@
             return new Date(`${year}-${month}-${day}T${hour}:${min}:${sec}Z`);
         }
 
-        // 触发搜索
         function searchClan() {
             let val = document.getElementById('search-input').value.trim();
             if(!val) return;
@@ -110,7 +114,6 @@
         }
 
         async function loadWarData(clanPrefix, isCustomSearch = false) {
-            // UI 按钮高亮逻辑
             const btnHq = document.getElementById('btn-hq');
             const btnBr = document.getElementById('btn-br');
             if (isCustomSearch) {
@@ -226,7 +229,6 @@
                 let atk1Html = renderAttackCell(m.attacks ? m.attacks[0] : null, oppMap);
                 let atk2Html = attacksPerMember === 2 ? `<td>${renderAttackCell(m.attacks ? m.attacks[1] : null, oppMap)}</td>` : '';
                 
-                // 首领特批：将“挂机中”修改为“未进攻”
                 if (!m.attacks || !m.attacks[0]) atk1Html = `<span class="text-red-400 text-[9px] font-bold border border-red-500/30 px-1 rounded bg-red-950/50">未进攻</span>`;
                 if (attacksPerMember === 2 && used === 1) atk2Html = `<td><span class="text-amber-400/90 text-[9px] font-bold border border-amber-500/30 px-1 rounded bg-amber-950/40">余 1 刀</span></td>`;
 
@@ -249,7 +251,6 @@
             }).join('');
         }
 
-        // 监听回车键进行搜索
         document.getElementById('search-input').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') searchClan();
         });
