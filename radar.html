@@ -167,13 +167,19 @@
     <script>
         let currentClan = 'hq'; 
         let customTag = '';
-        let currentMode = 'war'; // war, cwl, capital
+        let currentMode = 'war'; 
 
+        // 🚨 修复核心：安全的时间解析器，如果是都城模式或格式不对，直接不处理，绝不报错
         function parseCocTime(cocTime) {
-            if (!cocTime) return new Date();
-            const year = cocTime.slice(0, 4), month = cocTime.slice(4, 6), day = cocTime.slice(6, 8);
-            const hour = cocTime.slice(9, 11), min = cocTime.slice(11, 13), sec = cocTime.slice(13, 15);
-            return new Date(`${year}-${month}-${day}T${hour}:${min}:${sec}Z`);
+            if (!cocTime || currentMode === 'capital') return new Date();
+            try {
+                if (cocTime.includes('T')) {
+                    const year = cocTime.slice(0, 4), month = cocTime.slice(4, 6), day = cocTime.slice(6, 8);
+                    const hour = cocTime.slice(9, 11), min = cocTime.slice(11, 13), sec = cocTime.slice(13, 15);
+                    return new Date(`${year}-${month}-${day}T${hour}:${min}:${sec}Z`);
+                }
+            } catch(e) { console.error("时间解析跳过", e); }
+            return new Date();
         }
 
         function changeClan(target) {
@@ -196,7 +202,6 @@
             triggerRadar();
         }
 
-        // 切换三大模式
         function changeMode(mode) {
             currentMode = mode;
             ['war', 'cwl', 'capital'].forEach(m => {
@@ -215,7 +220,6 @@
         }
 
         async function triggerRadar() {
-            // 隐藏所有面板，展示Loading
             document.getElementById('loading-box').classList.remove('hidden');
             document.getElementById('war-dashboard').classList.add('hidden');
             document.getElementById('capital-dashboard').classList.add('hidden');
@@ -237,7 +241,6 @@
                 if (data.state === 'notInWar' || data.state === 'notInRaid' || data.error) throw new Error(data.error || "💤 当前无战事或匹配中。");
                 if (!data.clan && currentMode !== 'capital') throw new Error("获取数据异常。");
 
-                // 分流渲染
                 if (currentMode === 'capital') {
                     renderCapitalDashboard(data, currentClan);
                     document.getElementById('capital-dashboard').classList.remove('hidden');
@@ -254,7 +257,6 @@
             }
         }
 
-        /* ============== 渲染：常规/联赛大屏 ============== */
         function renderWarDashboard(data) {
             const oppMap = {};
             if (data.opponent && data.opponent.members) {
@@ -269,7 +271,6 @@
             document.getElementById('opp-dest').innerText = (data.opponent.destructionPercentage || 0).toFixed(1) + '%';
 
             const endTime = parseCocTime(data.endTime);
-            const now = new Date();
             let stateText = data.state === 'preparation' ? '准备日' : (data.state === 'inWar' ? '战斗日' : '已结束');
             document.getElementById('war-status-time').innerText = `${stateText}`;
 
@@ -344,7 +345,6 @@
                 </div>`;
         }
 
-        /* ============== 渲染：都城突袭大屏 ============== */
         function renderCapitalDashboard(data, clanPrefix) {
             const clanNameText = (clanPrefix === 'hq') ? '烟雨楼' : ((clanPrefix === 'br') ? '星辰璀璨' : '目标部落');
             document.getElementById('cap-clan-name').innerText = clanNameText;
