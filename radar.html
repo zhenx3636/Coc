@@ -27,7 +27,6 @@
     <div class="max-w-6xl mx-auto space-y-3 pb-8 pt-safe">
         
         <div class="glass-panel border border-slate-700/60 p-2 md:p-3 rounded-xl shadow-2xl flex flex-col gap-3 mt-2">
-            
             <div class="flex flex-col md:flex-row justify-between items-center gap-3 w-full">
                 <div class="flex items-center gap-2 shrink-0">
                     <a href="index.html" class="text-slate-400 hover:text-white transition-colors px-2.5 py-1.5 bg-[#020617] rounded-lg border border-slate-700/80 shadow-inner">
@@ -51,22 +50,17 @@
             </div>
 
             <div class="grid grid-cols-3 gap-1.5 w-full border-t border-slate-800/50 pt-2">
-                <button onclick="changeMode('war')" id="mode-war" class="mode-btn mode-active border rounded-lg py-1.5 text-[11px] font-bold flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-khanda"></i> 常规战
-                </button>
-                <button onclick="changeMode('cwl')" id="mode-cwl" class="mode-btn mode-inactive border rounded-lg py-1.5 text-[11px] font-bold flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-trophy"></i> CWL联赛
-                </button>
-                <button onclick="changeMode('capital')" id="mode-capital" class="mode-btn mode-inactive border rounded-lg py-1.5 text-[11px] font-bold flex items-center justify-center gap-1.5">
-                    <i class="fa-brands fa-fort-awesome"></i> 都城突袭
-                </button>
+                <button onclick="changeMode('war')" id="mode-war" class="mode-btn mode-active border rounded-lg py-1.5 text-[11px] font-bold flex items-center justify-center gap-1.5"><i class="fa-solid fa-khanda"></i> 常规战</button>
+                <button onclick="changeMode('cwl')" id="mode-cwl" class="mode-btn mode-inactive border rounded-lg py-1.5 text-[11px] font-bold flex items-center justify-center gap-1.5"><i class="fa-solid fa-trophy"></i> CWL联赛</button>
+                <button onclick="changeMode('capital')" id="mode-capital" class="mode-btn mode-inactive border rounded-lg py-1.5 text-[11px] font-bold flex items-center justify-center gap-1.5"><i class="fa-brands fa-fort-awesome"></i> 都城突袭</button>
             </div>
         </div>
 
-        <div id="loading-box" class="text-center py-10 text-cyan-500 text-sm font-medium"><i class="fa-solid fa-spinner animate-spin text-xl mb-2"></i><p>跨域侦察卫星连接中...</p></div>
+        <div id="loading-box" class="text-center py-10 text-cyan-500 text-sm font-medium"><i class="fa-solid fa-spinner animate-spin text-xl mb-2"></i><p>接收卫星信号中...</p></div>
         <div id="error-box" class="hidden text-center py-10 text-red-400 font-bold bg-red-950/20 rounded-xl border border-red-500/30 p-4"><p id="error-msg" class="text-xs"></p></div>
 
         <div id="war-dashboard" class="hidden space-y-3">
+            
             <div class="glass-panel border border-slate-700/60 rounded-xl p-3 shadow-xl flex justify-between items-center relative overflow-hidden">
                 <div class="absolute inset-0 opacity-[0.03] flex justify-center items-center font-black text-6xl italic z-0 pointer-events-none">VS</div>
                 <div class="w-[35%] text-left relative z-10">
@@ -90,6 +84,29 @@
                         <span class="text-[9px] text-slate-400"><span id="opp-dest">0%</span> | <i class="fa-solid fa-star text-slate-500"></i></span>
                         <span class="text-2xl font-black text-white drop-shadow-md" id="opp-stars">0</span>
                     </div>
+                </div>
+            </div>
+
+            <div id="cwl-roster-panel" class="hidden glass-panel border border-slate-700/60 rounded-xl shadow-xl overflow-hidden">
+                <div class="bg-slate-900/50 border-b border-slate-700/60 px-3 py-2 flex justify-between items-center">
+                    <span class="text-[10px] font-bold text-amber-500 tracking-wider"><i class="fa-solid fa-layer-group"></i> 联赛八大部落底牌侦察 (本月大名单)</span>
+                    <span class="text-[9px] text-slate-500">自动按硬件排序</span>
+                </div>
+                <div class="overflow-x-auto no-scrollbar">
+                    <table class="w-full text-left dense-table">
+                        <thead class="bg-slate-950/80 text-slate-400 border-b border-slate-800/80">
+                            <tr>
+                                <th>参战部落名称</th>
+                                <th class="text-center font-black text-fuchsia-500/80">18本</th>
+                                <th class="text-center font-bold text-red-400/80">17本</th>
+                                <th class="text-center font-bold text-orange-400/80">16本</th>
+                                <th class="text-center font-bold text-amber-400/80">15本</th>
+                                <th class="text-center text-slate-500 text-[9px]">其它</th>
+                                <th class="text-right">总计</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cwl-roster-list" class="divide-y divide-slate-800/40"></tbody>
+                    </table>
                 </div>
             </div>
 
@@ -169,7 +186,6 @@
         let customTag = '';
         let currentMode = 'war'; 
 
-        // 🚨 修复核心：安全的时间解析器，如果是都城模式或格式不对，直接不处理，绝不报错
         function parseCocTime(cocTime) {
             if (!cocTime || currentMode === 'capital') return new Date();
             try {
@@ -206,11 +222,8 @@
             currentMode = mode;
             ['war', 'cwl', 'capital'].forEach(m => {
                 const btn = document.getElementById('mode-' + m);
-                if (m === mode) {
-                    btn.className = 'mode-btn mode-active border rounded-lg py-1.5 text-[11px] font-bold flex items-center justify-center gap-1.5';
-                } else {
-                    btn.className = 'mode-btn mode-inactive border rounded-lg py-1.5 text-[11px] font-bold flex items-center justify-center gap-1.5';
-                }
+                if (m === mode) btn.className = 'mode-btn mode-active border rounded-lg py-1.5 text-[11px] font-bold flex items-center justify-center gap-1.5';
+                else btn.className = 'mode-btn mode-inactive border rounded-lg py-1.5 text-[11px] font-bold flex items-center justify-center gap-1.5';
             });
             
             if (mode === 'cwl') document.getElementById('table-title').innerHTML = '<i class="fa-solid fa-trophy text-amber-500"></i> CWL 联赛明细日志';
@@ -224,6 +237,9 @@
             document.getElementById('war-dashboard').classList.add('hidden');
             document.getElementById('capital-dashboard').classList.add('hidden');
             document.getElementById('error-box').classList.add('hidden');
+            
+            // 每次切换时先隐藏联赛底牌图
+            document.getElementById('cwl-roster-panel').classList.add('hidden');
 
             let endpoint = '';
             if (currentMode === 'war') endpoint = '/api/war';
@@ -236,10 +252,9 @@
                 const res = await fetch(`${endpoint}?tag=${tagParam}`);
                 const data = await res.json();
 
-                if (data.reason === 'accessDenied') throw new Error("⚠️ 官方拦截：该部落未公开【部落战日志】！<br><span class='text-[10px] text-slate-400 font-normal'>只有公开了日志的部落才能被侦察。</span>");
-                if (data.reason === 'notFound') throw new Error("❌ 找不到该部落，请检查标签 # 是否输入正确。");
+                if (data.reason === 'accessDenied') throw new Error("⚠️ 官方拦截：该部落未公开【部落战日志】！");
+                if (data.reason === 'notFound') throw new Error("❌ 找不到该部落，请检查标签 # 是否正确。");
                 if (data.state === 'notInWar' || data.state === 'notInRaid' || data.error) throw new Error(data.error || "💤 当前无战事或匹配中。");
-                if (!data.clan && currentMode !== 'capital') throw new Error("获取数据异常。");
 
                 if (currentMode === 'capital') {
                     renderCapitalDashboard(data, currentClan);
@@ -247,6 +262,11 @@
                 } else {
                     renderWarDashboard(data);
                     document.getElementById('war-dashboard').classList.remove('hidden');
+                    
+                    // 🔥 如果是CWL模式，且有底牌数据，直接渲染底牌八大金刚
+                    if (currentMode === 'cwl' && data.groupRoster) {
+                        renderCwlRoster(data.groupRoster, data.clan ? data.clan.name : "载入中");
+                    }
                 }
                 
                 document.getElementById('loading-box').classList.add('hidden');
@@ -257,64 +277,113 @@
             }
         }
 
+        // 渲染联赛 8大部落底牌
+        function renderCwlRoster(roster, myClanName) {
+            const panel = document.getElementById('cwl-roster-panel');
+            if (!roster || roster.length === 0) return panel.classList.add('hidden');
+            
+            panel.classList.remove('hidden');
+
+            // 战术排序算法：18本多的排上面，其次17本，极其残酷的丛林法则
+            roster.sort((a, b) => {
+                const a18 = a.thCounts[18] || 0; const b18 = b.thCounts[18] || 0;
+                if (b18 !== a18) return b18 - a18;
+                const a17 = a.thCounts[17] || 0; const b17 = b.thCounts[17] || 0;
+                if (b17 !== a17) return b17 - a17;
+                const a16 = a.thCounts[16] || 0; const b16 = b.thCounts[16] || 0;
+                if (b16 !== a16) return b16 - a16;
+                return b.total - a.total;
+            });
+
+            document.getElementById('cwl-roster-list').innerHTML = roster.map(clan => {
+                const isMe = clan.name === myClanName;
+                // 我们自己的部落打上醒目的青色高亮边框
+                const rowClass = isMe ? 'bg-cyan-950/40 border-l-2 border-cyan-500' : 'hover:bg-slate-800/40';
+                const nameColor = isMe ? 'text-cyan-400 font-black' : 'text-slate-300 font-bold';
+                
+                const th18 = clan.thCounts[18] || 0;
+                const th17 = clan.thCounts[17] || 0;
+                const th16 = clan.thCounts[16] || 0;
+                const th15 = clan.thCounts[15] || 0;
+                const other = clan.total - th18 - th17 - th16 - th15;
+
+                return `
+                <tr class="${rowClass} transition-colors">
+                    <td class="${nameColor} truncate max-w-[100px] sm:max-w-[150px]">
+                        <span class="text-[9px] text-slate-500 font-mono hidden sm:inline mr-1">${clan.tag}</span>${clan.name}
+                    </td>
+                    <td class="text-center ${th18 > 0 ? 'text-fuchsia-400 font-black text-sm' : 'text-slate-600'}">${th18 || '-'}</td>
+                    <td class="text-center ${th17 > 0 ? 'text-red-400 font-bold' : 'text-slate-600'}">${th17 || '-'}</td>
+                    <td class="text-center ${th16 > 0 ? 'text-orange-400 font-bold' : 'text-slate-600'}">${th16 || '-'}</td>
+                    <td class="text-center ${th15 > 0 ? 'text-amber-400 font-bold' : 'text-slate-600'}">${th15 || '-'}</td>
+                    <td class="text-center text-slate-500 text-[10px]">${other > 0 ? other : '-'}</td>
+                    <td class="text-right font-mono text-slate-400">${clan.total}</td>
+                </tr>`;
+            }).join('');
+        }
+
         function renderWarDashboard(data) {
             const oppMap = {};
             if (data.opponent && data.opponent.members) {
                 data.opponent.members.forEach(om => oppMap[om.tag] = om.mapPosition);
             }
 
-            document.getElementById('my-clan-name').innerText = data.clan.name;
-            document.getElementById('my-stars').innerText = data.clan.stars || 0;
-            document.getElementById('my-dest').innerText = (data.clan.destructionPercentage || 0).toFixed(1) + '%';
-            document.getElementById('opp-clan-name').innerText = data.opponent.name || "匹配中...";
-            document.getElementById('opp-stars').innerText = data.opponent.stars || 0;
-            document.getElementById('opp-dest').innerText = (data.opponent.destructionPercentage || 0).toFixed(1) + '%';
+            document.getElementById('my-clan-name').innerText = data.clan ? data.clan.name : "载入中";
+            document.getElementById('my-stars').innerText = data.clan ? (data.clan.stars || 0) : 0;
+            document.getElementById('my-dest').innerText = data.clan ? ((data.clan.destructionPercentage || 0).toFixed(1) + '%') : '0%';
+            document.getElementById('opp-clan-name').innerText = data.opponent ? (data.opponent.name || "匹配中...") : "匹配中...";
+            document.getElementById('opp-stars').innerText = data.opponent ? (data.opponent.stars || 0) : 0;
+            document.getElementById('opp-dest').innerText = data.opponent ? ((data.opponent.destructionPercentage || 0).toFixed(1) + '%') : '0%';
 
             const endTime = parseCocTime(data.endTime);
             let stateText = data.state === 'preparation' ? '准备日' : (data.state === 'inWar' ? '战斗日' : '已结束');
             document.getElementById('war-status-time').innerText = `${stateText}`;
 
-            const attacksPerMember = data.attacksPerMember || 2; 
-            document.getElementById('attacks-left').innerText = (data.teamSize * attacksPerMember) - (data.clan.attacks || 0);
+            if(data.clan) {
+                const attacksPerMember = data.attacksPerMember || 2; 
+                document.getElementById('attacks-left').innerText = (data.teamSize * attacksPerMember) - (data.clan.attacks || 0);
 
-            if (attacksPerMember === 2) document.getElementById('th-atk-2').classList.remove('hidden');
-            else document.getElementById('th-atk-2').classList.add('hidden');
+                if (attacksPerMember === 2) document.getElementById('th-atk-2').classList.remove('hidden');
+                else document.getElementById('th-atk-2').classList.add('hidden');
 
-            let members = data.clan.members || [];
-            members.sort((a, b) => {
-                const aMissed = attacksPerMember - (a.attacks ? a.attacks.length : 0);
-                const bMissed = attacksPerMember - (b.attacks ? b.attacks.length : 0);
-                if (aMissed !== bMissed) return bMissed - aMissed; 
-                return a.mapPosition - b.mapPosition; 
-            });
+                let members = data.clan.members || [];
+                members.sort((a, b) => {
+                    const aMissed = attacksPerMember - (a.attacks ? a.attacks.length : 0);
+                    const bMissed = attacksPerMember - (b.attacks ? b.attacks.length : 0);
+                    if (aMissed !== bMissed) return bMissed - aMissed; 
+                    return a.mapPosition - b.mapPosition; 
+                });
 
-            document.getElementById('war-members-list').innerHTML = members.map(m => {
-                const used = m.attacks ? m.attacks.length : 0;
-                const missed = attacksPerMember - used;
-                let trClass = missed > 0 ? 'row-missed' : 'row-done hover:bg-slate-800/40';
-                
-                let atk1Html = renderAttackCell(m.attacks ? m.attacks[0] : null, oppMap);
-                let atk2Html = attacksPerMember === 2 ? `<td>${renderAttackCell(m.attacks ? m.attacks[1] : null, oppMap)}</td>` : '';
-                
-                if (!m.attacks || !m.attacks[0]) atk1Html = `<span class="text-red-400 text-[9px] font-bold border border-red-500/30 px-1 rounded bg-red-950/50">未进攻</span>`;
-                if (attacksPerMember === 2 && used === 1) atk2Html = `<td><span class="text-amber-400/90 text-[9px] font-bold border border-amber-500/30 px-1 rounded bg-amber-950/40">余 1 刀</span></td>`;
+                document.getElementById('war-members-list').innerHTML = members.map(m => {
+                    const used = m.attacks ? m.attacks.length : 0;
+                    const missed = attacksPerMember - used;
+                    let trClass = missed > 0 ? 'row-missed' : 'row-done hover:bg-slate-800/40';
+                    
+                    let atk1Html = renderAttackCell(m.attacks ? m.attacks[0] : null, oppMap);
+                    let atk2Html = attacksPerMember === 2 ? `<td>${renderAttackCell(m.attacks ? m.attacks[1] : null, oppMap)}</td>` : '';
+                    
+                    if (!m.attacks || !m.attacks[0]) atk1Html = `<span class="text-red-400 text-[9px] font-bold border border-red-500/30 px-1 rounded bg-red-950/50">未进攻</span>`;
+                    if (attacksPerMember === 2 && used === 1) atk2Html = `<td><span class="text-amber-400/90 text-[9px] font-bold border border-amber-500/30 px-1 rounded bg-amber-950/40">余 1 刀</span></td>`;
 
-                let defenseHtml = renderDefenseCell(m);
+                    let defenseHtml = renderDefenseCell(m);
 
-                return `
-                <tr class="${trClass} transition-colors">
-                    <td class="text-center font-mono text-slate-500 border-r border-slate-800/40">${m.mapPosition}</td>
-                    <td class="font-bold text-slate-200">
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-[9px] text-slate-400 font-bold bg-[#020617] px-1 rounded border border-slate-700/60 shadow-inner">${m.townhallLevel}本</span>
-                            <span class="truncate max-w-[80px] sm:max-w-[120px] drop-shadow-sm">${m.name}</span>
-                        </div>
-                    </td>
-                    <td>${atk1Html}</td>
-                    ${atk2Html}
-                    <td class="text-right border-l border-slate-800/40 pr-2 pl-1">${defenseHtml}</td>
-                </tr>`;
-            }).join('');
+                    return `
+                    <tr class="${trClass} transition-colors">
+                        <td class="text-center font-mono text-slate-500 border-r border-slate-800/40">${m.mapPosition}</td>
+                        <td class="font-bold text-slate-200">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[9px] text-slate-400 font-bold bg-[#020617] px-1 rounded border border-slate-700/60 shadow-inner">${m.townhallLevel}本</span>
+                                <span class="truncate max-w-[80px] sm:max-w-[120px] drop-shadow-sm">${m.name}</span>
+                            </div>
+                        </td>
+                        <td>${atk1Html}</td>
+                        ${atk2Html}
+                        <td class="text-right border-l border-slate-800/40 pr-2 pl-1">${defenseHtml}</td>
+                    </tr>`;
+                }).join('');
+            } else {
+                document.getElementById('war-members-list').innerHTML = `<tr><td colspan="5" class="text-center text-slate-500 py-6">等待战队生成或API数据同步</td></tr>`;
+            }
         }
 
         function renderAttackCell(atk, oppMap) {
