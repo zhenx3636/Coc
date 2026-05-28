@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -22,19 +21,22 @@
     
     <div class="relative z-10 max-w-6xl mx-auto pt-4 md:pt-10" id="app-container">
         
-        <!-- ==================== 1. 玩家门户 ==================== -->
         <div id="view-register" class="max-w-5xl mx-auto space-y-8">
             <div class="bg-gradient-to-r from-amber-600 via-red-600 to-purple-800 p-8 text-center rounded-2xl shadow-2xl relative overflow-hidden border border-slate-700">
                 <i class="fa-solid fa-swords absolute -left-4 -top-4 text-9xl text-black/10"></i>
                 <i class="fa-solid fa-shield-halved absolute -right-4 -bottom-4 text-9xl text-black/10"></i>
                 <h1 class="text-3xl md:text-4xl font-black text-white tracking-wider relative z-10 drop-shadow-md">烟雨楼 & 星辰璀璨</h1>
                 <p class="text-amber-100 mt-2 font-medium relative z-10">联赛双部落智能分配与公示大屏</p>
+                
+                <div class="mt-6 relative z-10 text-center flex justify-center">
+                    <a href="radar.html" class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-slate-900/80 border border-cyan-500 text-cyan-400 hover:bg-cyan-900 hover:text-white font-bold shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all active:scale-95 backdrop-blur-sm">
+                        <i class="fa-solid fa-satellite-dish animate-pulse"></i> 前往战争实况侦察雷达 <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </a>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- 报名栏 -->
                 <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl space-y-6 relative overflow-hidden">
-                    <!-- 封盘遮罩 -->
                     <div id="registration-locked-overlay" class="hidden absolute inset-0 bg-slate-900/90 z-20 flex flex-col items-center justify-center backdrop-blur-sm">
                         <i class="fa-solid fa-lock text-5xl text-red-500 mb-4"></i>
                         <h3 class="text-xl font-bold text-white">本月报名通道已关闭</h3>
@@ -75,7 +77,6 @@
                     </form>
                 </div>
 
-                <!-- 查询栏 -->
                 <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl space-y-6">
                     <h2 class="text-xl font-bold text-cyan-400 flex items-center gap-2">
                         <i class="fa-solid fa-magnifying-glass"></i> 个人战位快速查询
@@ -94,7 +95,6 @@
                 </div>
             </div>
 
-            <!-- 🔥 全局实战分组公示大屏 🔥 -->
             <div class="glowing-border bg-slate-900/90 rounded-xl p-6 shadow-2xl space-y-6 mt-8 relative">
                 <div class="text-center space-y-1 mb-6">
                     <h2 class="text-2xl md:text-3xl font-black text-cyan-400 tracking-wider flex items-center justify-center gap-3">
@@ -118,7 +118,6 @@
             </div>
         </div>
 
-        <!-- ==================== 2. 管理员登录界面 ==================== -->
         <div id="view-adminLogin" class="hidden max-w-md mx-auto bg-slate-800 rounded-xl shadow-2xl overflow-hidden border border-slate-700 mt-10">
             <div class="p-6 bg-slate-800 border-b border-slate-700 flex items-center gap-4">
                 <button onclick="switchView('register')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-arrow-left"></i></button>
@@ -139,10 +138,8 @@
             </div>
         </div>
 
-        <!-- ==================== 3. 首领管理大师面板 ==================== -->
         <div id="view-adminDashboard" class="hidden space-y-6">
             
-            <!-- 头部汇总与超管功能 -->
             <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-2xl space-y-4">
                 <div class="flex flex-wrap justify-between items-center gap-4 border-b border-slate-700 pb-4">
                     <div class="flex items-center gap-4">
@@ -155,20 +152,16 @@
                         </div>
                     </div>
                     
-                    <!-- 高级管理操作区 -->
                     <div class="flex flex-wrap items-center gap-3">
-                        <!-- 封锁报名开关 -->
                         <button id="toggle-lock-btn" onclick="toggleRegistrationLock()" class="px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors bg-emerald-600/20 text-emerald-400 border border-emerald-500/50">
                             <i class="fa-solid fa-door-open"></i> 报名通道：开启中
                         </button>
-                        <!-- 一键清空赛季 -->
                         <button onclick="triggerResetSeason()" class="px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors bg-red-600 hover:bg-red-500 text-white shadow-lg">
                             <i class="fa-solid fa-skull"></i> 重置新赛季
                         </button>
                     </div>
                 </div>
 
-                <!-- 统计数据 -->
                 <div class="flex flex-wrap justify-between items-end gap-4">
                     <div class="flex gap-3">
                         <div class="bg-slate-900 px-4 py-2 rounded-lg border border-slate-700 text-center">
@@ -187,10 +180,8 @@
                 </div>
             </div>
 
-            <!-- 控制台核心区：左侧新建战队，右侧闲置大厅 -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 
-                <!-- 新建部落表单 -->
                 <div class="lg:col-span-1 bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-2xl space-y-4 sticky top-4">
                     <h3 class="text-md font-bold text-amber-400 flex items-center gap-2">
                         <i class="fa-solid fa-plus-circle"></i> 建立新战队
@@ -232,21 +223,17 @@
                     </form>
                 </div>
 
-                <!-- 🌟 全新重构：空闲待命大厅 -->
                 <div class="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-5 flex flex-col h-full">
                     <div class="flex justify-between items-center mb-4">
                         <span class="font-bold text-red-400 flex items-center gap-2">
                             <i class="fa-solid fa-campground"></i> 空闲待命大厅 (闲置人员池)
                         </span>
-                        <!-- 大本营筛选器 -->
                         <div class="flex flex-wrap gap-1 max-w-[60%] justify-end" id="th-filters-container">
-                            <!-- JS 动态生成 18本, 17本 筛选按钮 -->
-                        </div>
+                            </div>
                     </div>
                     
                     <div class="bg-slate-900/50 rounded-lg border border-slate-800 p-4 flex-grow max-h-[300px] overflow-y-auto no-scrollbar">
                         <div id="idle-players-grid" class="flex flex-wrap gap-2 items-start">
-                            <!-- 待命玩家标签 -->
                             <div class="text-slate-500 text-sm italic w-full text-center py-10">目前没有空闲的成员。</div>
                         </div>
                     </div>
@@ -254,20 +241,17 @@
 
             </div>
 
-            <!-- 🌟 战队排兵布阵看版 (按需拉人) -->
             <div class="space-y-4 pt-4 border-t border-slate-700/50">
                 <h3 class="text-xl font-bold text-amber-500 flex items-center gap-2">
                     <i class="fa-solid fa-sitemap"></i> 联赛战队沙盘 (直接在此选人入队)
                 </h3>
                 <div id="clan-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
-                    <!-- 动态生成战队卡片 -->
-                </div>
+                    </div>
             </div>
 
         </div>
     </div>
 
-    <!-- 弹窗：跨部落选人 (点将台) -->
     <div id="picker-modal" class="hidden fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4">
         <div class="bg-slate-800 border border-slate-600 p-6 rounded-xl max-w-md w-full shadow-2xl relative flex flex-col max-h-[80vh]">
             <button onclick="closePicker()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
@@ -275,8 +259,7 @@
             <p class="text-sm text-slate-400 mb-4 pb-4 border-b border-slate-700">请为 <span id="picker-clan-name" class="font-bold text-amber-400"></span> 挑选 <span id="picker-th-level" class="font-black text-cyan-400 bg-cyan-900/30 px-1 rounded"></span> 成员入队：</p>
             
             <div id="picker-list" class="overflow-y-auto no-scrollbar flex-grow space-y-2">
-                <!-- 动态生成可选名单 -->
-            </div>
+                </div>
             
             <div class="mt-4 pt-4 border-t border-slate-700 text-right">
                 <button onclick="closePicker()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-lg text-sm hover:bg-slate-600">完成挑选</button>
@@ -284,7 +267,6 @@
         </div>
     </div>
 
-    <!-- 弹窗：重置与删除二次确认 -->
     <div id="delete-modal" class="hidden fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50">
         <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl max-w-sm w-full shadow-2xl">
             <h3 class="text-lg font-bold text-white mb-2"><i class="fa-solid fa-triangle-exclamation text-red-500"></i> 危险操作确认</h3>
@@ -297,7 +279,6 @@
         </div>
     </div>
 
-    <!-- Firebase SDK (v9 compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -745,7 +726,6 @@
 
                     <div class="grid grid-cols-[repeat(auto-fill,minmax(135px,1fr))] gap-2 w-full">${playerRows}</div>
                     
-                    <!-- 招募兵站 -->
                     <div class="pt-3 border-t border-slate-700/50">
                         <p class="text-[10px] text-slate-400 mb-1.5"><i class="fa-solid fa-satellite-dish text-cyan-500"></i> 招募闲置人员入队：</p>
                         <div class="flex flex-wrap gap-1.5">${recruitButtons}</div>
@@ -853,6 +833,3 @@
     </script>
 </body>
 </html>
-
-
-```
