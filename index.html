@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COC 联赛智能调度与大屏系统</title>
+    <title>联赛双部落智能分配大屏</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -11,9 +11,9 @@
         .hidden { display: none !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .radar-scan { animation: scan 2s linear infinite; }
-        @keyframes scan { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
         .glowing-border { box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); border: 1px solid rgba(6, 182, 212, 0.5); }
+        .sync-dot { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
     </style>
 </head>
 <body class="selection:bg-amber-500/30 min-h-screen p-4 md:p-8 pb-20">
@@ -26,11 +26,15 @@
                 <i class="fa-solid fa-swords absolute -left-4 -top-4 text-9xl text-black/10"></i>
                 <i class="fa-solid fa-shield-halved absolute -right-4 -bottom-4 text-9xl text-black/10"></i>
                 <h1 class="text-3xl md:text-4xl font-black text-white tracking-wider relative z-10 drop-shadow-md">烟雨楼 & 星辰璀璨</h1>
-                <p class="text-amber-100 mt-2 font-medium relative z-10">联赛双部落智能分配与公示大屏</p>
-                
+                <p class="text-amber-100 mt-2 font-medium relative z-10">联赛双部集结与实战公示大屏</p>
+                <div class="absolute top-4 right-4 text-[10px] text-white/50 flex items-center gap-1">
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 sync-dot"></div>
+                    系统防弹模式运行中
+                </div>
+
                 <div class="mt-6 relative z-10 text-center flex justify-center">
-                    <a href="radar.html" class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-slate-900/80 border border-cyan-500 text-cyan-400 hover:bg-cyan-900 hover:text-white font-bold shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all active:scale-95 backdrop-blur-sm">
-                        <i class="fa-solid fa-satellite-dish animate-pulse"></i> 前往战争实况侦察雷达 <i class="fa-solid fa-arrow-right text-xs"></i>
+                    <a href="radar.html" class="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full bg-slate-900/80 border border-cyan-500 text-cyan-400 hover:bg-cyan-900 hover:text-white font-bold shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all active:scale-95 backdrop-blur-sm">
+                        <i class="fa-solid fa-satellite-dish animate-pulse"></i> 开启全景侦察雷达 <i class="fa-solid fa-arrow-right text-xs"></i>
                     </a>
                 </div>
             </div>
@@ -67,8 +71,6 @@
                                 <option value="15">15 本</option><option value="14">14 本</option><option value="13">13 本</option>
                                 <option value="12">12 本</option><option value="11">11 本</option><option value="10">10 本</option>
                                 <option value="9">9 本</option><option value="8">8 本</option><option value="7">7 本</option>
-                                <option value="6">6 本</option><option value="5">5 本</option><option value="4">4 本</option>
-                                <option value="3">3 本</option><option value="2">2 本</option><option value="1">1 本</option>
                             </select>
                         </div>
                         <button type="submit" id="submit-btn" class="w-full bg-gradient-to-b from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-900 font-bold py-3 rounded-lg shadow-lg transform transition active:scale-95">
@@ -106,7 +108,7 @@
                 <div id="public-clan-cards-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                     <div class="col-span-full text-center text-slate-500 py-8">
                         <i class="fa-solid fa-satellite-dish text-3xl opacity-20 mb-2 block animate-pulse"></i>
-                        正在获取实时战场数据...
+                        <br>正在获取实时战场数据...
                     </div>
                 </div>
             </div>
@@ -224,11 +226,16 @@
                 </div>
 
                 <div class="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-5 flex flex-col h-full">
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="font-bold text-red-400 flex items-center gap-2">
-                            <i class="fa-solid fa-campground"></i> 空闲待命大厅 (闲置人员池)
-                        </span>
-                        <div class="flex flex-wrap gap-1 max-w-[60%] justify-end" id="th-filters-container">
+                    <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-red-400 flex items-center gap-2">
+                                <i class="fa-solid fa-campground"></i> 空闲待命大厅
+                            </span>
+                            <button onclick="triggerDelete('all_idle', '', '')" class="text-[10px] bg-red-900/60 hover:bg-red-600 text-red-200 border border-red-700/50 px-2 py-1 rounded transition-colors flex items-center gap-1 shadow">
+                                <i class="fa-solid fa-trash-can"></i> 一键清空闲置
+                            </button>
+                        </div>
+                        <div class="flex flex-wrap gap-1 max-w-[50%] justify-end" id="th-filters-container">
                             </div>
                     </div>
                     
@@ -238,7 +245,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
 
             <div class="space-y-4 pt-4 border-t border-slate-700/50">
@@ -248,7 +254,6 @@
                 <div id="clan-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
                     </div>
             </div>
-
         </div>
     </div>
 
@@ -257,10 +262,7 @@
             <button onclick="closePicker()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
             <h3 class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-hand-pointer text-cyan-400"></i> 点将台</h3>
             <p class="text-sm text-slate-400 mb-4 pb-4 border-b border-slate-700">请为 <span id="picker-clan-name" class="font-bold text-amber-400"></span> 挑选 <span id="picker-th-level" class="font-black text-cyan-400 bg-cyan-900/30 px-1 rounded"></span> 成员入队：</p>
-            
-            <div id="picker-list" class="overflow-y-auto no-scrollbar flex-grow space-y-2">
-                </div>
-            
+            <div id="picker-list" class="overflow-y-auto no-scrollbar flex-grow space-y-2"></div>
             <div class="mt-4 pt-4 border-t border-slate-700 text-right">
                 <button onclick="closePicker()" class="px-4 py-2 bg-slate-700 text-slate-300 rounded-lg text-sm hover:bg-slate-600">完成挑选</button>
             </div>
@@ -279,173 +281,152 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
     <script>
         // ==========================================
-        // 🚀 Firebase 数据库初始化配置
+        // 🚀 UPSTASH REDIS 核心连接引擎 (终极防毒断腕版)
         // ==========================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyB2vKe6TCS2sCTDP56RCi5wJ3Y6UAl_yYg",
-            authDomain: "coccwl.firebaseapp.com",
-            projectId: "coccwl",
-            storageBucket: "coccwl.firebasestorage.app",
-            messagingSenderId: "1026324733981",
-            appId: "1:1026324733981:web:7a7d6303336b6e947b26f4"
-        };
+        const UPSTASH_URL = "https://together-basilisk-101054.upstash.io".trim();
+        const UPSTASH_TOKEN = "gQAAAAAAAYq-AAIgcDEzODU4OTJjN2I2NTE0Yjg2OWUwZDZmN2Y0MDQ2NDVlMQ".trim();
         
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        // 🚨 换锁：直接使用全新的键名，彻底抛弃之前因为乱码而崩溃的毒数据！
+        const KEY_PLAYERS = "coc_prod_players_v1";
+        const KEY_CLANS = "coc_prod_clans_v1";
+        const KEY_SETTINGS = "coc_prod_settings_v1";
+        const ADMIN_SECRET = 'coc2026';
 
-        const ADMIN_SECRET = 'coc2026'; 
-        const APP_ID = 'coc-cwl-app'; 
-
-        // 确保雷达五个频段全开，不漏掉任何历史数据
-        const DATA_SOURCES = [
-            { key: 'hq_root', path: 'cwl_registrations', label: '烟雨楼' },
-            { key: 'hq_nested', path: `artifacts/${APP_ID}/public/data/cwl_registrations`, label: '烟雨楼' },
-            { key: 'br_root', path: 'cwl_june_xingchen', label: '星辰璀璨' },
-            { key: 'br_nested', path: `artifacts/${APP_ID}/public/data/cwl_june_xingchen`, label: '星辰璀璨' },
-            { key: 'br_old', path: 'cwl_june_clan2', label: '星辰(旧档)' } 
-        ];
-
-        let allPlayersMap = new Map(); 
+        let allPlayers = [];
         let clansData = [];
         let appSettings = { registrationLocked: false };
         let currentThFilter = 'all'; 
         let deleteTarget = null; 
         let currentPickerClanId = null; 
+        let isFetching = false;
+        
+        let localDataHash = "";
 
-        auth.signInAnonymously().then(() => {
-            startListeners();
-        }).catch(err => alert("数据库连接受阻，请检查网络。"));
-
-        function startListeners() {
-            // 监听全局设置 (封盘开关)
-            db.collection(APP_ID + "_settings").doc("global_config").onSnapshot(doc => {
-                if (doc.exists) appSettings = doc.data();
-                else appSettings = { registrationLocked: false };
-                updateLockUI();
-            });
-
-            // 监听玩家数据
-            DATA_SOURCES.forEach(source => {
-                db.collection(source.path).onSnapshot(snapshot => {
-                    snapshot.docs.forEach(doc => {
-                        allPlayersMap.set(doc.id, { id: doc.id, refPath: doc.ref.path, source: source.label, ...doc.data() });
-                    });
-                    const currentDocIds = snapshot.docs.map(d => d.id);
-                    for (const [key, player] of allPlayersMap.entries()) {
-                        if (player.refPath.startsWith(source.path) && !currentDocIds.includes(key)) allPlayersMap.delete(key);
-                    }
-                    triggerUIRender();
-                });
-            });
-
-            // 监听部落战队数据
-            db.collection(APP_ID + "_schedule_clans").onSnapshot(snapshot => {
-                clansData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                clansData.sort((a,b) => {
-                    const wA = getTierWeight(a.tier); const wB = getTierWeight(b.tier);
-                    if (wA !== wB) return wB - wA; // 降序
-                    return a.timestamp - b.timestamp;
-                });
-                triggerUIRender();
-            });
+        // 🛡️ 防护盾牌：确保哪怕数据被玩坏了，也绝对强制转换成正确的数组，绝不崩溃！
+        function safeParse(str, defaultVal) {
+            try { 
+                const parsed = str ? JSON.parse(str) : defaultVal; 
+                if (Array.isArray(defaultVal) && !Array.isArray(parsed)) return defaultVal;
+                return parsed;
+            } 
+            catch(e) { return defaultVal; }
         }
 
-        function triggerUIRender() {
-            renderPlayerSearch();
-            renderPublicDashboard(); 
-            if (!document.getElementById('view-adminDashboard').classList.contains('hidden')) {
-                renderAdminDashboard();
+        async function fetchGlobalData(force = false) {
+            if(isFetching) return;
+            isFetching = true;
+            try {
+                const res = await fetch(`${UPSTASH_URL}/pipeline`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${UPSTASH_TOKEN}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify([ ["GET", KEY_SETTINGS], ["GET", KEY_PLAYERS], ["GET", KEY_CLANS] ])
+                });
+                const data = await res.json();
+                
+                const newHash = JSON.stringify(data);
+                if (!force && newHash === localDataHash) {
+                    isFetching = false;
+                    return; 
+                }
+                localDataHash = newHash; 
+                
+                appSettings = safeParse(data[0]?.result, { registrationLocked: false });
+                allPlayers = safeParse(data[1]?.result, []);
+                let newClans = safeParse(data[2]?.result, []);
+                
+                clansData = newClans.sort((a,b) => {
+                    const wA = getTierWeight(a.tier); const wB = getTierWeight(b.tier);
+                    if (wA !== wB) return wB - wA; return a.timestamp - b.timestamp;
+                });
+
+                updateLockUI();
+                renderPlayerSearch();
+                renderPublicDashboard();
+                if (!document.getElementById('view-adminDashboard').classList.contains('hidden')) {
+                    renderAdminDashboard();
+                }
+                
+                if (!document.getElementById('picker-modal').classList.contains('hidden') && currentPickerClanId) {
+                    openPicker(currentPickerClanId, document.getElementById('picker-clan-name').innerText, parseInt(document.getElementById('picker-th-level').innerText));
+                }
+            } catch (e) { console.error("读取数据失败", e); }
+            isFetching = false;
+        }
+
+        // ⚔️ 终极修复：使用最权威、不会引发双重转义的官方 REST 写入标准格式
+        async function updateRedisKey(key, value) {
+            try {
+                await fetch(UPSTASH_URL, {
+                    method: 'POST',
+                    headers: { 
+                        Authorization: `Bearer ${UPSTASH_TOKEN}`, 
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify(["SET", key, JSON.stringify(value)])
+                });
+                await fetchGlobalData(true);
+            } catch (e) {
+                console.error("写入网络错误", e);
             }
         }
 
+        fetchGlobalData();
+        setInterval(fetchGlobalData, 3000);
+
         function getSortedPlayers() {
-            return Array.from(allPlayersMap.values()).sort((a, b) => {
+            return [...allPlayers].sort((a, b) => {
                 if (b.thLevel !== a.thLevel) return b.thLevel - a.thLevel;
                 return a.timestamp - b.timestamp;
             });
         }
 
-        // ==========================================
-        // 🔒 全局控制开关：封锁报名
-        // ==========================================
         function updateLockUI() {
             const btn = document.getElementById('toggle-lock-btn');
             const overlay = document.getElementById('registration-locked-overlay');
             const submitBtn = document.getElementById('submit-btn');
 
             if (appSettings.registrationLocked) {
-                if(btn) {
-                    btn.innerHTML = '<i class="fa-solid fa-lock"></i> 报名已封锁 (禁入)';
-                    btn.className = "px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors bg-red-600/20 text-red-400 border border-red-500/50";
-                }
+                if(btn) btn.innerHTML = '<i class="fa-solid fa-lock"></i> 报名已封锁 (禁入)', btn.className = "px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors bg-red-600/20 text-red-400 border border-red-500/50";
                 if(overlay) overlay.classList.remove('hidden');
                 if(submitBtn) submitBtn.disabled = true;
             } else {
-                if(btn) {
-                    btn.innerHTML = '<i class="fa-solid fa-door-open"></i> 报名通道：开启中';
-                    btn.className = "px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors bg-emerald-600/20 text-emerald-400 border border-emerald-500/50";
-                }
+                if(btn) btn.innerHTML = '<i class="fa-solid fa-door-open"></i> 报名通道：开启中', btn.className = "px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors bg-emerald-600/20 text-emerald-400 border border-emerald-500/50";
                 if(overlay) overlay.classList.add('hidden');
                 if(submitBtn) submitBtn.disabled = false;
             }
         }
 
         async function toggleRegistrationLock() {
-            try {
-                await db.collection(APP_ID + "_settings").doc("global_config").set({
-                    registrationLocked: !appSettings.registrationLocked
-                }, { merge: true });
-            } catch (err) { console.error("Toggle lock error", err); }
+            appSettings.registrationLocked = !appSettings.registrationLocked;
+            await updateRedisKey(KEY_SETTINGS, appSettings);
         }
 
-        // ==========================================
-        // ♻️ 一键重置赛季 (核弹按钮)
-        // ==========================================
         function triggerResetSeason() {
             deleteTarget = { type: 'reset_season' };
             const textElement = document.getElementById('delete-modal-text');
             const inputElement = document.getElementById('reset-confirm-input');
-            
-            textElement.innerHTML = `<span class="text-red-400 font-bold">警告：这将彻底清空所有玩家报名记录和所有的战队分组！</span><br>请在下方输入框中键入 <span class="text-white font-mono bg-slate-900 px-1">CONFIRM</span> 以确认操作。`;
-            inputElement.classList.remove('hidden');
-            inputElement.value = '';
+            textElement.innerHTML = `<span class="text-red-400 font-bold">警告：这将彻底清空所有玩家报名记录和所有的战队分组！</span><br>请输入 <span class="text-white font-mono bg-slate-900 px-1">CONFIRM</span> 确认。`;
+            inputElement.classList.remove('hidden'); inputElement.value = '';
             document.getElementById('delete-modal').classList.remove('hidden');
         }
 
         async function executeResetSeason() {
             const input = document.getElementById('reset-confirm-input').value.trim();
-            if (input !== 'CONFIRM') {
-                alert('安全校验失败，输入不匹配，已取消操作。');
-                return;
-            }
+            if (input !== 'CONFIRM') return alert('输入不匹配，已取消。');
             
             const btn = document.getElementById('confirm-delete-btn');
-            btn.innerText = '正在执行核打击...';
-            btn.disabled = true;
+            btn.innerText = '执行中...'; btn.disabled = true;
 
-            try {
-                for (let clan of clansData) await db.collection(APP_ID + "_schedule_clans").doc(clan.id).delete();
-                for (let player of Array.from(allPlayersMap.values())) await db.doc(player.refPath).delete();
-                alert('系统已清理完毕，全新赛季已准备就绪！');
-            } catch (err) {
-                console.error(err); alert('清理过程中出现异常。');
-            } finally {
-                btn.innerText = '确定';
-                btn.disabled = false;
-                closeDeleteModal();
-            }
+            await updateRedisKey(KEY_PLAYERS, []);
+            await updateRedisKey(KEY_CLANS, []);
+            
+            btn.innerText = '确定'; btn.disabled = false;
+            closeDeleteModal();
+            alert('系统已清理完毕，全新赛季就绪！');
         }
 
-        // ==========================================
-        // 🎨 UI 工具库
-        // ==========================================
         function switchView(viewName) {
             document.getElementById('view-register').classList.add('hidden');
             document.getElementById('view-adminLogin').classList.add('hidden');
@@ -472,35 +453,19 @@
 
         function getThStyle(level) {
             const colors = {
-                18: 'bg-fuchsia-600/20 text-fuchsia-400 border-fuchsia-500/30',
-                17: 'bg-red-600/20 text-red-400 border-red-500/30',
-                16: 'bg-orange-600/20 text-orange-400 border-orange-500/30',
-                15: 'bg-amber-600/20 text-amber-400 border-amber-500/30',
-                14: 'bg-yellow-600/20 text-yellow-400 border-yellow-500/30',
-                13: 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30',
-                12: 'bg-teal-600/20 text-teal-400 border-teal-500/30',
-                11: 'bg-cyan-600/20 text-cyan-400 border-cyan-500/30',
-                10: 'bg-blue-600/20 text-blue-400 border-blue-500/30',
-                9:  'bg-indigo-600/20 text-indigo-400 border-indigo-500/30',
-                8:  'bg-violet-600/20 text-violet-400 border-violet-500/30',
-                7:  'bg-purple-600/20 text-purple-400 border-purple-500/30',
-                6:  'bg-pink-600/20 text-pink-400 border-pink-500/30',
-                5:  'bg-rose-600/20 text-rose-400 border-rose-500/30',
-                4:  'bg-stone-600/20 text-stone-400 border-stone-500/30',
-                3:  'bg-neutral-600/20 text-neutral-400 border-neutral-500/30',
-                2:  'bg-zinc-600/20 text-zinc-400 border-zinc-500/30',
-                1:  'bg-slate-600/20 text-slate-400 border-slate-500/30',
+                18: 'bg-fuchsia-600/20 text-fuchsia-400 border-fuchsia-500/30', 17: 'bg-red-600/20 text-red-400 border-red-500/30',
+                16: 'bg-orange-600/20 text-orange-400 border-orange-500/30', 15: 'bg-amber-600/20 text-amber-400 border-amber-500/30',
+                14: 'bg-yellow-600/20 text-yellow-400 border-yellow-500/30', 13: 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30',
+                12: 'bg-teal-600/20 text-teal-400 border-teal-500/30', 11: 'bg-cyan-600/20 text-cyan-400 border-cyan-500/30',
+                10: 'bg-blue-600/20 text-blue-400 border-blue-500/30', 9:  'bg-indigo-600/20 text-indigo-400 border-indigo-500/30',
+                8:  'bg-violet-600/20 text-violet-400 border-violet-500/30', 7:  'bg-purple-600/20 text-purple-400 border-purple-500/30',
             };
             return colors[level] || 'bg-gray-600/20 text-gray-400 border-gray-500/30';
         }
 
-        // ==========================================
-        // ✍️ 玩家报名与搜索逻辑
-        // ==========================================
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             if(appSettings.registrationLocked) return;
-
             const btn = document.getElementById('submit-btn');
             const sourceCode = document.getElementById('player-clan-source').value;
             const name = document.getElementById('player-name').value.trim();
@@ -509,13 +474,19 @@
             if(!name) return showMessage('error', '请输入有效的游戏昵称！');
             btn.disabled = true; btn.innerText = '提交中...';
 
-            try {
-                const col = sourceCode === 'hq' ? 'cwl_registrations' : 'cwl_june_xingchen';
-                await db.collection(col).add({ name, thLevel: parseInt(thLevel), assignedClanId: "", assignedClanName: "", timestamp: Date.now() });
-                showMessage('success', `成功登记到 [${sourceCode === 'hq' ? '烟雨楼' : '星辰璀璨'}]`);
-                document.getElementById('player-name').value = '';
-            } catch (err) { showMessage('error', '写入数据库失败。'); }
-            finally { btn.disabled = false; btn.innerText = '立即提交出战申请'; }
+            const newPlayer = {
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                name, thLevel: parseInt(thLevel),
+                source: sourceCode === 'hq' ? '烟雨楼' : '星辰璀璨',
+                assignedClanId: "", assignedClanName: "", timestamp: Date.now()
+            };
+
+            let updatedPlayers = [...allPlayers, newPlayer];
+            await updateRedisKey(KEY_PLAYERS, updatedPlayers);
+            
+            showMessage('success', `成功登记到 [${newPlayer.source}]`);
+            document.getElementById('player-name').value = '';
+            btn.disabled = false; btn.innerText = '立即提交出战申请';
         });
 
         function showMessage(type, text) {
@@ -526,7 +497,6 @@
             setTimeout(() => box.classList.add('hidden'), 5000);
         }
 
-        // ⭐ 核心修复：把搜索的事件监听器加回来了
         document.getElementById('search-name').addEventListener('input', renderPlayerSearch);
 
         function renderPlayerSearch() {
@@ -539,14 +509,9 @@
                 <div class="space-y-1">
                     <i class="fa-solid fa-face-frown text-slate-500 text-xl"></i>
                     <p class="text-slate-300 text-sm font-semibold">未找到相关玩家的报名记录</p>
-                    <p class="text-xs text-slate-500">可能已被清空或输入有误。</p>
                 </div>`;
 
             let resultHTML = `<div class="w-full space-y-3 text-left">`;
-            if (matches.length > 1) {
-                resultHTML += `<div class="text-xs text-cyan-400 font-bold mb-2"><i class="fa-solid fa-circle-info"></i> 找到 ${matches.length} 个名称匹配的玩家记录，请仔细核对：</div>`;
-            }
-
             resultHTML += matches.map(match => {
                 const clan = clansData.find(c => c.id === match.assignedClanId);
                 const thColor = getThStyle(match.thLevel);
@@ -560,33 +525,30 @@
                     content += `
                         <div class="bg-gradient-to-r from-slate-900 to-slate-900/80 p-2 rounded border border-slate-700 text-left relative overflow-hidden">
                             <i class="fa-solid ${style.icon} absolute right-3 top-3 text-4xl text-slate-500/10"></i>
-                            <p class="text-[10px] text-slate-400">已被首领分配至实战联赛战队：</p>
+                            <p class="text-[10px] text-slate-400">已被首领分配至实战战队：</p>
                             <h4 class="text-md font-bold text-slate-200 mt-1">${clan.name}</h4>
-                            ${clan.tag ? `<p class="text-[11px] text-cyan-400 font-mono mt-0.5 select-all"><i class="fa-solid fa-hashtag text-[9px]"></i> ${clan.tag}</p>` : ''}
-                            <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold ${style.bg} ${style.text} border ${style.border} mt-2">
-                                <i class="fa-solid ${style.icon}"></i> ${clan.tier}
-                            </div>
+                            ${clan.tag ? `<p class="text-[11px] text-cyan-400 font-mono mt-0.5"><i class="fa-solid fa-hashtag text-[9px]"></i> ${clan.tag}</p>` : ''}
+                            <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold ${style.bg} ${style.text} border ${style.border} mt-2"><i class="fa-solid ${style.icon}"></i> ${clan.tier}</div>
                         </div>`;
                 } else {
                     content += `<div class="text-xs text-amber-400 p-2 bg-amber-500/10 rounded"><i class="fa-solid fa-hourglass-half"></i> 闲置待命中，等待首领点将...</div>`;
                 }
                 return content + `</div>`;
             }).join('');
-            
             resultBox.innerHTML = resultHTML + `</div>`;
         }
 
         function renderPublicDashboard() {
             const container = document.getElementById('public-clan-cards-grid');
             const players = getSortedPlayers();
-            if (clansData.length === 0) return container.innerHTML = `<div class="col-span-full text-slate-500 text-center py-8">暂无战队编制发布。</div>`;
+            if (clansData.length === 0) return container.innerHTML = `<div class="col-span-full text-slate-500 text-center py-8">本赛季暂无战队编制发布。</div>`;
 
             container.innerHTML = clansData.map(clan => {
                 const style = getTierStyle(clan.tier);
                 const assigned = players.filter(p => p.assignedClanId === clan.id);
                 const cap = clan.capacity || 15;
                 const isFull = assigned.length >= cap;
-                const capColor = assigned.length > cap ? 'text-red-400 animate-pulse' : (isFull ? 'text-emerald-400' : 'text-amber-400');
+                const capColor = assigned.length > cap ? 'text-red-400 animate-pulse font-bold' : (isFull ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold');
                 
                 let playerRows = assigned.map((p, idx) => `
                     <div class="flex justify-between items-center bg-slate-900/80 rounded border border-slate-700/50 text-xs px-2 py-1.5 w-full hover:border-slate-500 transition-colors">
@@ -604,7 +566,7 @@
                     <div class="flex justify-between items-start">
                         <div>
                             <h4 class="text-md font-bold text-white">${clan.name}</h4>
-                            ${clan.tag ? `<p class="text-[10px] text-cyan-400 font-mono mt-0.5 select-all">${clan.tag}</p>` : ''}
+                            ${clan.tag ? `<p class="text-[10px] text-cyan-400 font-mono mt-0.5">${clan.tag}</p>` : ''}
                         </div>
                         <div class="px-2 py-1 rounded text-[10px] font-bold ${style.bg} ${style.text} border ${style.border} flex items-center gap-1">
                             <i class="fa-solid ${style.icon}"></i> ${clan.tier}
@@ -612,30 +574,30 @@
                     </div>
                     <div class="bg-slate-900 p-2 rounded flex justify-between items-center text-xs border border-slate-700">
                         <span class="text-slate-400">参战规模:</span>
-                        <span class="font-extrabold ${capColor}">${assigned.length} / ${cap} 人</span>
+                        <span class="${capColor}">${assigned.length} / ${cap} 人</span>
                     </div>
                     <div class="grid grid-cols-[repeat(auto-fill,minmax(135px,1fr))] gap-2 w-full">${playerRows}</div>
                 </div>`;
             }).join('');
         }
 
-        // ==========================================
-        // 🛠️ 后台大师面板
-        // ==========================================
         document.getElementById('add-clan-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.submitter; btn.disabled = true;
-            try {
-                await db.collection(APP_ID + "_schedule_clans").add({
-                    name: document.getElementById('clan-name').value.trim(),
-                    tag: document.getElementById('clan-tag').value.trim(),
-                    capacity: parseInt(document.getElementById('clan-capacity').value),
-                    tier: document.getElementById('clan-tier').value,
-                    timestamp: Date.now()
-                });
-                document.getElementById('clan-name').value = '';
-                document.getElementById('clan-tag').value = '';
-            } catch (err) { console.error(err); } finally { btn.disabled = false; }
+            const newClan = {
+                id: Date.now().toString(),
+                name: document.getElementById('clan-name').value.trim(),
+                tag: document.getElementById('clan-tag').value.trim(),
+                capacity: parseInt(document.getElementById('clan-capacity').value),
+                tier: document.getElementById('clan-tier').value,
+                timestamp: Date.now()
+            };
+            let updatedClans = [...clansData, newClan];
+            await updateRedisKey(KEY_CLANS, updatedClans);
+            
+            document.getElementById('clan-name').value = '';
+            document.getElementById('clan-tag').value = '';
+            btn.disabled = false;
         });
 
         function renderAdminDashboard() {
@@ -646,7 +608,6 @@
             document.getElementById('stat-assigned-players').innerText = players.length - unassigned.length;
             document.getElementById('stat-unassigned-players').innerText = unassigned.length;
 
-            // 渲染闲置大厅过滤器
             const thCounts = unassigned.reduce((acc, c) => { acc[c.thLevel] = (acc[c.thLevel] || 0) + 1; return acc; }, {});
             let filterHtml = `<button onclick="setThFilter('all')" class="px-2 py-1 text-[10px] rounded border ${currentThFilter==='all' ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-slate-900 text-slate-400 border-slate-700 hover:bg-slate-800'}">全部闲置</button>`;
             Object.keys(thCounts).sort((a,b)=>b-a).forEach(th => {
@@ -657,23 +618,21 @@
             });
             document.getElementById('th-filters-container').innerHTML = filterHtml;
 
-            // 渲染闲置人员列表
             const idleContainer = document.getElementById('idle-players-grid');
             let visibleIdle = currentThFilter === 'all' ? unassigned : unassigned.filter(p => p.thLevel.toString() === currentThFilter);
-            if (visibleIdle.length === 0) idleContainer.innerHTML = `<div class="text-slate-500 text-xs w-full text-center py-6">此条件下无闲置成员。</div>`;
+            if (visibleIdle.length === 0) idleContainer.innerHTML = `<div class="text-slate-500 text-xs w-full text-center py-6">无闲置成员。</div>`;
             else {
                 idleContainer.innerHTML = visibleIdle.map(p => `
                     <div class="flex items-center bg-slate-900 rounded border border-slate-700 px-2 py-1 text-xs">
                         <span class="${getThStyle(p.thLevel)} px-1 rounded text-[9px] mr-1.5 border">${p.thLevel}本</span>
                         <span class="text-slate-200 max-w-[80px] truncate" title="${p.name}">${p.name}</span>
-                        <button onclick="triggerDelete('player', '${p.refPath}', '${p.name}')" class="ml-2 text-red-900 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
+                        <button onclick="triggerDelete('player', '${p.id}', '${p.name}')" class="ml-2 text-red-900 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
                     </div>
                 `).join('');
             }
 
-            // 渲染战队卡片 (拉人看板)
             const clanCardsContainer = document.getElementById('clan-cards-grid');
-            if (clansData.length === 0) return clanCardsContainer.innerHTML = `<div class="col-span-full text-slate-500 text-sm p-6 text-center">暂无战队编制，请在左侧创建。</div>`;
+            if (clansData.length === 0) return clanCardsContainer.innerHTML = `<div class="col-span-full text-slate-500 text-sm p-6 text-center">暂无战队，请创建。</div>`;
 
             clanCardsContainer.innerHTML = clansData.map(clan => {
                 const style = getTierStyle(clan.tier);
@@ -682,7 +641,6 @@
                 const isFull = assigned.length >= cap;
                 const capColor = assigned.length > cap ? 'text-red-400 font-bold animate-pulse' : (isFull ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold');
 
-                // 战队内已有人员 (带踢出功能，网格对齐)
                 let playerRows = assigned.map((p, idx) => `
                     <div class="flex justify-between items-center bg-slate-900/80 rounded border border-slate-700/50 text-xs px-2 py-1.5 w-full hover:border-red-500/50 transition-colors group">
                         <div class="font-medium text-slate-200 flex items-center gap-1.5 truncate pr-1">
@@ -691,21 +649,19 @@
                         </div>
                         <div class="flex items-center gap-1 shrink-0">
                             <span class="${getThStyle(p.thLevel)} border px-1 py-0.5 rounded font-extrabold text-[10px]">${p.thLevel}本</span>
-                            <button onclick="assignPlayer('${p.refPath}', '')" class="text-slate-600 hover:text-red-400 px-1" title="踢回闲置大厅"><i class="fa-solid fa-minus-circle"></i></button>
+                            <button onclick="assignPlayer('${p.id}', '')" class="text-slate-600 hover:text-red-400 px-1"><i class="fa-solid fa-minus-circle"></i></button>
                         </div>
                     </div>`).join('');
                 
-                if(!playerRows) playerRows = `<div class="text-slate-500 text-xs w-full text-center italic py-2 col-span-full">席位空缺，请在下方招募</div>`;
+                if(!playerRows) playerRows = `<div class="text-slate-500 text-xs w-full text-center italic py-2 col-span-full">空缺中</div>`;
 
-                // 动态生成拉人按钮 (只显示有闲置资源的本数)
                 let recruitButtons = '';
                 [18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8].forEach(th => {
                     if (thCounts[th]) {
-                        const styleStr = getThStyle(th);
-                        recruitButtons += `<button onclick="openPicker('${clan.id}', '${clan.name}', ${th})" class="${styleStr} border text-[10px] font-bold px-2 py-1 rounded shadow-sm hover:brightness-125 transition transform active:scale-95 flex items-center gap-1"><i class="fa-solid fa-plus"></i> ${th}本 (${thCounts[th]})</button>`;
+                        recruitButtons += `<button onclick="openPicker('${clan.id}', '${clan.name}', ${th})" class="${getThStyle(th)} border text-[10px] font-bold px-2 py-1 rounded hover:brightness-125 transition active:scale-95 flex items-center gap-1"><i class="fa-solid fa-plus"></i> ${th}本 (${thCounts[th]})</button>`;
                     }
                 });
-                if(!recruitButtons) recruitButtons = `<span class="text-[10px] text-slate-600 w-full text-center">待命大厅暂无高本兵力可调遣</span>`;
+                if(!recruitButtons) recruitButtons = `<span class="text-[10px] text-slate-600 w-full text-center">暂无可用闲置高本</span>`;
 
                 return `
                 <div class="bg-slate-800 border border-slate-700 rounded-xl shadow-xl p-4 flex flex-col space-y-3 relative h-fit">
@@ -714,42 +670,29 @@
                             <h4 class="text-md font-bold text-white flex items-center gap-1">${clan.name}</h4>
                             <div class="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold ${style.bg} ${style.text} border ${style.border} mt-1">${clan.tier}</div>
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="triggerDelete('clan', '${clan.id}', '${clan.name}')" class="text-slate-500 hover:text-red-400 p-1" title="解散队伍"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
+                        <button onclick="triggerDelete('clan', '${clan.id}', '${clan.name}')" class="text-slate-500 hover:text-red-400 p-1"><i class="fa-solid fa-trash-can"></i></button>
                     </div>
-                    
                     <div class="bg-slate-900/80 p-2 rounded flex justify-between items-center text-xs border border-slate-700">
                         <span class="text-slate-400">目前编队:</span>
                         <span class="${capColor}">${assigned.length} / ${cap} 人</span>
                     </div>
-
                     <div class="grid grid-cols-[repeat(auto-fill,minmax(135px,1fr))] gap-2 w-full">${playerRows}</div>
-                    
                     <div class="pt-3 border-t border-slate-700/50">
-                        <p class="text-[10px] text-slate-400 mb-1.5"><i class="fa-solid fa-satellite-dish text-cyan-500"></i> 招募闲置人员入队：</p>
+                        <p class="text-[10px] text-slate-400 mb-1.5"><i class="fa-solid fa-satellite-dish text-cyan-500"></i> 招募入队：</p>
                         <div class="flex flex-wrap gap-1.5">${recruitButtons}</div>
                     </div>
                 </div>`;
             }).join('');
         }
 
-        // ==========================================
-        // ⚔️ 反向招募逻辑 (点将台)
-        // ==========================================
-        function setThFilter(th) {
-            currentThFilter = th;
-            renderAdminDashboard();
-        }
+        function setThFilter(th) { currentThFilter = th; renderAdminDashboard(); }
 
         function openPicker(clanId, clanName, thLevel) {
             currentPickerClanId = clanId;
             document.getElementById('picker-clan-name').innerText = clanName;
             document.getElementById('picker-th-level').innerText = thLevel + ' 本';
             
-            const players = getSortedPlayers();
-            const candidates = players.filter(p => !p.assignedClanId && p.thLevel === thLevel);
-            
+            const candidates = getSortedPlayers().filter(p => !p.assignedClanId && p.thLevel === thLevel);
             const listDiv = document.getElementById('picker-list');
             listDiv.innerHTML = candidates.map(p => `
                 <div class="flex justify-between items-center bg-slate-900 border border-slate-700 p-2 rounded hover:border-cyan-500 transition-colors">
@@ -757,46 +700,42 @@
                         <div class="text-sm font-bold text-white">${p.name}</div>
                         <div class="text-[10px] text-slate-500">来自: ${p.source}</div>
                     </div>
-                    <button onclick="executeAssign('${p.refPath}', '${clanId}'); this.disabled=true; this.innerHTML='已入编'" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs px-3 py-1.5 rounded font-bold transition-colors">调入 <i class="fa-solid fa-arrow-right-to-bracket"></i></button>
+                    <button onclick="assignPlayer('${p.id}', '${clanId}'); this.disabled=true; this.innerHTML='已入编'" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs px-3 py-1.5 rounded font-bold transition-colors">调入 <i class="fa-solid fa-arrow-right-to-bracket"></i></button>
                 </div>
             `).join('');
 
-            if(candidates.length === 0) listDiv.innerHTML = `<div class="text-slate-500 text-center py-4 text-sm">该大本营已无闲置成员</div>`;
-            
+            if(candidates.length === 0) listDiv.innerHTML = `<div class="text-slate-500 text-center py-4 text-sm">已无闲置成员</div>`;
             document.getElementById('picker-modal').classList.remove('hidden');
         }
 
-        function closePicker() {
-            document.getElementById('picker-modal').classList.add('hidden');
-            currentPickerClanId = null;
-        }
+        function closePicker() { document.getElementById('picker-modal').classList.add('hidden'); currentPickerClanId = null; }
 
-        async function executeAssign(docPath, clanId) {
-            await assignPlayer(docPath, clanId);
-        }
-
-        async function assignPlayer(docPath, clanId) {
-            try {
-                let assignedClanName = "";
-                if (clanId) {
-                    const clan = clansData.find(c => c.id === clanId);
-                    if (clan) assignedClanName = clan.name;
-                }
-                await db.doc(docPath).update({ assignedClanId: clanId, assignedClanName });
-            } catch (err) { console.error(err); }
+        async function assignPlayer(playerId, clanId) {
+            let assignedClanName = "";
+            if (clanId) {
+                const clan = clansData.find(c => c.id === clanId);
+                if (clan) assignedClanName = clan.name;
+            }
+            let updatedPlayers = allPlayers.map(p => {
+                if(p.id === playerId) return { ...p, assignedClanId: clanId, assignedClanName };
+                return p;
+            });
+            await updateRedisKey(KEY_PLAYERS, updatedPlayers);
         }
 
         // ==========================================
-        // 🗑️ 后台侧：安全删除模态模块
+        // 🗑️ 安全删除模态模块
         // ==========================================
-        window.triggerDelete = (type, pathOrId, name) => {
-            deleteTarget = { type, pathOrId };
+        window.triggerDelete = (type, id, name) => {
+            deleteTarget = { type, id };
             const textElement = document.getElementById('delete-modal-text');
             const inputElement = document.getElementById('reset-confirm-input');
             inputElement.classList.add('hidden'); 
 
-            if (type === 'player') textElement.innerText = `确定要彻底抹除闲置玩家 [${name}] 的记录吗？`;
-            else textElement.innerText = `解散战队 [${name}] 后，其所有成员将自动转入空闲（未分配）状态。`;
+            if (type === 'player') textElement.innerText = `确定彻底抹除玩家 [${name}] 的记录吗？`;
+            else if (type === 'clan') textElement.innerText = `解散战队 [${name}] 后，所有成员将自动转入空闲状态。`;
+            else if (type === 'all_idle') textElement.innerHTML = `<span class="text-red-400 font-bold">确定要一键抹除目前【闲置大厅】里的所有人吗？</span><br>（已经分配到队伍里的成员绝对不会受影响）`;
+            
             document.getElementById('delete-modal').classList.remove('hidden');
         }
 
@@ -808,20 +747,38 @@
 
         document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
             if (!deleteTarget) return;
-            if (deleteTarget.type === 'reset_season') return executeResetSeason();
+            const btn = document.getElementById('confirm-delete-btn');
+            btn.innerText = '执行中...'; btn.disabled = true;
 
-            try {
-                if (deleteTarget.type === 'player') {
-                    await db.doc(deleteTarget.pathOrId).delete();
-                } else {
-                    await db.collection(APP_ID + "_schedule_clans").doc(deleteTarget.pathOrId).delete();
-                    const affected = getSortedPlayers().filter(p => p.assignedClanId === deleteTarget.pathOrId);
-                    for (const p of affected) await assignPlayer(p.refPath, ""); 
-                }
-            } catch (err) { console.error(err); } finally { closeDeleteModal(); }
+            if (deleteTarget.type === 'reset_season') {
+                await executeResetSeason();
+            } 
+            else if (deleteTarget.type === 'all_idle') {
+                let updatedPlayers = allPlayers.filter(p => p.assignedClanId && p.assignedClanId !== "");
+                await updateRedisKey(KEY_PLAYERS, updatedPlayers);
+                closeDeleteModal();
+            }
+            else if (deleteTarget.type === 'player') {
+                let updatedPlayers = allPlayers.filter(p => p.id !== deleteTarget.id);
+                await updateRedisKey(KEY_PLAYERS, updatedPlayers);
+                closeDeleteModal();
+            } 
+            else if (deleteTarget.type === 'clan') {
+                let updatedClans = clansData.filter(c => c.id !== deleteTarget.id);
+                await updateRedisKey(KEY_CLANS, updatedClans);
+                
+                let updatedPlayers = allPlayers.map(p => {
+                    if(p.assignedClanId === deleteTarget.id) return { ...p, assignedClanId: "", assignedClanName: "" };
+                    return p;
+                });
+                await updateRedisKey(KEY_PLAYERS, updatedPlayers);
+                closeDeleteModal();
+            }
+            
+            btn.innerText = '确定'; btn.disabled = false;
         });
 
-        // 管理员登录
+        // 登录
         document.getElementById('admin-login-form').addEventListener('submit', (e) => {
             e.preventDefault();
             if (document.getElementById('admin-password').value === ADMIN_SECRET) {
